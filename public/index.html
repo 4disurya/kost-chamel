@@ -433,6 +433,37 @@ function warmPing() {
   clearTimeout(warmTimer);
   warmTimer = setTimeout(warmPing, 5 * 60 * 1000);
 }
+/* Sinkron tanpa jeda: terapkan hasil mutasi ke store SEGERA (0 menunggu),
+   lalu tarik data resmi di background (ter-debounce) untuk rekonsiliasi. */
+let syncTimer = null;
+function syncLatar() {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => { refresh(); }, 150);
+}
+function taruh_(jenis, data, mode) {
+  if (!data) { syncLatar(); return; }
+  const arr = store[jenis] || [];
+  if (mode === 'hapus') {
+    store[jenis] = arr.filter(x => String(x.ID) !== String(data.ID));
+  } else if (jenis === 'transaksi') {
+    store.transaksi = [data].concat(arr.filter(x => String(x.ID) !== String(data.ID)));
+  } else {
+    const i = arr.findIndex(x => String(x.ID) === String(data.ID));
+    const next = arr.slice();
+    if (i >= 0) next[i] = Object.assign({}, arr[i], data);
+    else next.push(data);
+    store[jenis] = next;
+  }
+  simpanSnap_();
+  syncLatar();
+}
+/* Auto-sinkron: tarik perubahan DB tiap 45 dtk selama tab terbuka,
+   dan langsung saat tab kembali aktif — tanpa perlu buka ulang halaman. */
+function jadwalAutoSync() {
+  if (USE_MOCK) return;
+  setInterval(() => { if (!document.hidden) refresh(); }, 45000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+}
 function kamarNo(id) {
   const k = store.kamar.find(k => k.ID === id);
   return k ? k.No : '-';
@@ -589,7 +620,7 @@ const KamarView = {
       const next = this.sel.Status === 'Terisi' ? 'Kosong' : 'Terisi';
       const r = await api('updateKamar', { ID: this.sel.ID, Status: next });
       if (r.success) {
-        await refresh();
+        taruh_('kamar', r.data);
         this.sel = store.kamar.find(k => k.ID === r.data.ID) || null;
         toast('Status kamar diperbarui');
       } else toast(r.message, 'error');
@@ -611,7 +642,7 @@ const KamarView = {
       const r = await api('updateKamar', this.formEdit);
       this.busy = false;
       if (r.success) {
-        await refresh();
+        taruh_('kamar', r.data);
         this.sel = store.kamar.find(k => k.ID === r.data.ID) || null;
         this.showEdit = false;
         this.confirmHapus = false;
@@ -626,7 +657,7 @@ const KamarView = {
       this.busy = false;
       this.confirmHapus = false;
       if (r.success) {
-        await refresh();
+        taruh_('kamar', r.data, 'hapus');
         this.showEdit = false;
         this.sel = null;
         toast('Kamar berhasil dihapus');
@@ -644,8 +675,8 @@ const KamarView = {
       const r = await api('addKamar', this.form);
       this.busy = false;
       if (r.success) {
-        await refresh(); this.showAdd = false;
-        this.form = { No: '', Fasilitas: '', Harga: '', Status: 'Kosong' };
+        taruh_('kamar', r.data); this.showAdd = false;
+        this.form = { No: '', Fasilitas: '', Harga: 0, Status: 'Kosong' };
         toast('Kamar berhasil ditambahkan');
       } else toast(r.message, 'error');
     }
@@ -768,16 +799,18 @@ const PenghuniView = {
       this.busy = true;
       const r = await api('updatePenghuni', { ID: this.sel.ID, Notes: this.draftNotes });
       this.busy = false;
-      if (r.success) { await refresh(); this.sel = null; toast('Catatan tersimpan'); }
+      if (r.success) { taruh_('penghuni', r.data); this.sel = null; toast('Catatan tersimpan'); }
       else toast(r.message, 'error');
     },
     async keluar() {
       this.busy = true;
       const r = await api('updatePenghuni', { ID: this.sel.ID, TglKeluar: todayISO() });
-      if (r.success && this.sel.KamarID) await api('updateKamar', { ID: this.sel.KamarID, Status: 'Kosong' });
+      let r2 = null;
+      if (r.success && this.sel.KamarID) r2 = await api('updateKamar', { ID: this.sel.KamarID, Status: 'Kosong' });
       this.busy = false;
       if (r.success) {
-        await refresh();
+        taruh_('penghuni', r.data);
+        if (r2 && r2.success) taruh_('kamar', r2.data);
         this.sel = store.penghuni.find(p => p.ID === r.data.ID) || null;
         toast('Penghuni ditandai keluar, kamar dikosongkan');
       } else toast(r.message, 'error');
@@ -873,7 +906,8 @@ const PenghuniBaruView = {
       const r = await api('addPenghuni', this.form);
       this.busy = false;
       if (r.success) {
-        await refresh();
+        taruh_('penghuni', r.data);
+        if (r.data.KamarID) taruh_('kamar', { ID: r.data.KamarID, Status: 'Terisi' });
         toast('Data Berhasil Disimpan');
         this.$go('#/penghuni');
       } else toast(r.message, 'error');
@@ -943,7 +977,11 @@ const PemasukanView = {
       const r = await api('addTransaksi', this.form);
       this.busy = false;
       if (r.success) {
-        await refresh();
+        taruh_('transaksi', r.data);
+        if (r.data.Tipe === 'Masuk') {
+          const pp = store.penghuni.find(x => x.Nama === r.data.Nama);
+          if (pp) taruh_('penghuni', Object.assign({}, pp, { StatusBayar: 'Sudah Bayar' }));
+        }
         toast('Data Berhasil Disimpan');
         this.$go('#/');
       } else toast(r.message, 'error');
@@ -999,7 +1037,7 @@ const PengeluaranView = {
       const r = await api('addTransaksi', this.form);
       this.busy = false;
       if (r.success) {
-        await refresh();
+        taruh_('transaksi', r.data);
         toast('Data Berhasil Disimpan');
         this.$go('#/');
       } else toast(r.message, 'error');
@@ -1258,7 +1296,7 @@ const TunggakanView = {
   methods: {
     async tandaiBayar(p) {
       const r = await api('updatePenghuni', { ID: p.ID, StatusBayar: 'Sudah Bayar' });
-      if (r.success) { await refresh(); toast(p.Nama + ' ditandai sudah bayar'); }
+      if (r.success) { taruh_('penghuni', r.data); toast(p.Nama + ' ditandai sudah bayar'); }
       else toast(r.message, 'error');
     }
   },
@@ -1371,6 +1409,7 @@ const app = createApp({
     });
     warmPing();
     muatSnap_();
+    jadwalAutoSync();
     refresh();
     this.guard();
   },
