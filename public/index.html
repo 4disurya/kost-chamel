@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>KOST CHAMEL GOWA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: '#008444',
+        success: '#28A745',
+        accent: '#F9A825',
+        navactive: '#9B72B0',
+        bgapp: '#F2F2F2',
+        surface: '#FFFFFF',
+        txt2: '#666666',
+        txt3: '#9E9E9E',
+        danger: '#D32F2F'
+      },
+      boxShadow: { soft: '0px 4px 10px rgba(0, 0, 0, 0.05)' },
+      fontFamily: { sans: ['Inter', 'Roboto', 'system-ui', 'sans-serif'] }
+    }
+  }
+};
+</script>
+<style>
+  /* ===== Design tokens (dari design.md) ===== */
+  :root {
+    --c-primary: #008444; --c-secondary: #28A745; --c-orange: #F9A825;
+    --c-purple: #9B72B0; --c-bg: #F2F2F2; --c-surface: #FFFFFF;
+    --c-t1: #000000; --c-t2: #666666; --c-t3: #9E9E9E; --c-danger: #D32F2F;
+    --r-md: 12px; --r-lg: 20px; --r-full: 999px;
+    --shadow-soft: 0 4px 10px rgba(0, 0, 0, .05);
+    --grad-brand: linear-gradient(135deg, var(--c-primary), var(--c-secondary));
+  }
+  * { -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: Inter, Roboto, system-ui, sans-serif;
+    background: var(--c-bg); color: var(--c-t1);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(0, 132, 68, .18); }
+  input, select, textarea { font-size: 16px; }
+  input::placeholder, textarea::placeholder { color: var(--c-t3); }
+
+  /* ===== Komponen util ===== */
+  .card {
+    background: var(--c-surface); border-radius: var(--r-lg);
+    box-shadow: var(--shadow-soft); border: 1px solid rgba(0, 0, 0, .04);
+  }
+  .label {
+    display: block; font-size: 12px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--c-t2); margin-bottom: 6px;
+  }
+  .field {
+    width: 100%; border: 1px solid #E2E8F0; border-radius: var(--r-md);
+    padding: 13px 15px; background: var(--c-surface); color: var(--c-t1);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 4px rgba(0, 132, 68, .12); }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    border-radius: var(--r-md); font-weight: 700;
+    transition: transform .12s ease, box-shadow .18s ease, opacity .15s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .55; }
+  .btn-brand { background: var(--grad-brand); color: #fff; box-shadow: 0 10px 22px -10px rgba(0, 132, 68, .65); }
+  .btn-success { background: linear-gradient(135deg, var(--c-secondary), var(--c-primary)); color: #fff; box-shadow: 0 10px 22px -10px rgba(40, 167, 69, .6); }
+  .btn-accent { background: var(--c-orange); color: #fff; box-shadow: 0 10px 22px -10px rgba(249, 168, 37, .65); }
+  .btn-ghost { background: var(--c-bg); color: var(--c-t2); }
+  .btn-danger-soft { background: #FEF2F2; color: var(--c-danger); }
+  .btn-danger { background: var(--c-danger); color: #fff; }
+  .tile, .row-card { transition: transform .12s ease, box-shadow .18s ease; }
+  .tile:active, .row-card:active { transform: scale(.96); }
+  .app-header {
+    background: var(--grad-brand); position: relative; overflow: hidden;
+  }
+  .app-header::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(110% 80% at 85% -25%, rgba(255, 255, 255, .22), transparent 60%);
+  }
+  .grad-text {
+    background: var(--grad-brand); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .micro {
+    font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  }
+  .sheet-handle {
+    width: 44px; height: 5px; border-radius: var(--r-full);
+    background: #E2E8F0; margin: -4px auto 12px;
+  }
+  .press:active { transform: scale(.97); }
+
+  /* ===== Transisi halaman & efek ===== */
+  .fade-enter-active, .fade-leave-active { transition: opacity .2s; }
+  .fade-enter-from, .fade-leave-to { opacity: 0; }
+  .modal-enter-active, .modal-leave-active { transition: opacity .2s; }
+  .modal-enter-active > div, .modal-leave-active > div { transition: transform .24s cubic-bezier(.2, .9, .3, 1); }
+  .modal-enter-from, .modal-leave-to { opacity: 0; }
+  .modal-enter-from > div, .modal-leave-to > div { transform: translateY(48px); }
+  .page-enter-active { transition: opacity .18s ease, transform .18s ease; }
+  .page-leave-active { transition: opacity .12s ease; }
+  .page-enter-from { opacity: 0; transform: translateY(10px); }
+  .page-leave-to { opacity: 0; }
+</style>
+</head>
+<body class="bg-bgapp">
+<div id="app"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const { createApp } = Vue;
+
+/* ========================= KONFIG & STATUS MOCK ========================= */
+const USE_MOCK = false;         // true = mode demo lokal tanpa backend
+const GAS_ENV = 'dev';          // 'dev' | 'prod' -> endpoint yang dipakai di bawah
+const GAS_URL = {               // hasil `clasp create-deployment` (2 deployment tetap)
+  dev: 'https://script.google.com/macros/s/AKfycbxlaj-2aJJ4rjDdaWw7nOVg28fFTbZeJFE3jFRnAr6TtvpCqZ4PX-8-tm1d9-cApiRA-Q/exec',
+  prod: 'https://script.google.com/macros/s/AKfycbwCo3uXcIOj2Ug4p969luCuIuHK3GgxqM_9YlUhb2pFJTTvaDe0l-lmBcEgb80CjxW96A/exec'
+};
+const ADMIN_PASSWORD = 'kost_chamel';
+const ADMIN_ROUTES = ['#/laporan', '#/penghuni/baru']; // wajib login admin
+
+/* ========================= UTILITAS ========================= */
+const rp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+const isoLocal = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const todayISO = () => isoLocal(new Date());
+const tgl = s => !s ? '-' : new Date(s + 'T00:00:00').toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+const maskHp = hp => (hp && hp.length > 7) ? hp.slice(0, 4) + '••••' + hp.slice(-3) : (hp || '-');
+const ymOf = s => (s || '').slice(0, 7);
+const thisYm = () => todayISO().slice(0, 7);
+function shiftYm(ym, n) {
+  const p = ym.split('-').map(Number);
+  const d = new Date(p[0], p[1] - 1 + n, 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+function ymLabel(ym) {
+  return new Date(ym + '-01T00:00:00').toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+}
+function waLink(hp) {
+  let n = (hp || '').replace(/\D/g, '');
+  if (n.startsWith('0')) n = '62' + n.slice(1);
+  else if (n.startsWith('8')) n = '62' + n;
+  return 'https://wa.me/' + n;
+}
+function shiftDate(d, n) {
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + n);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, last));
+}
+function jatuhTempo(p) {
+  const d = new Date(p.TglMasuk + 'T00:00:00');
+  if (isNaN(d)) return '-';
+  const step = p.Tipe === 'Tahunan' ? 12 : 1;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  let guard = 0;
+  while (d < now && guard < 240) { shiftDate(d, step); guard++; }
+  return isoLocal(d);
+}
+function durasiSewa(p) {
+  const a = new Date(p.TglMasuk + 'T00:00:00');
+  if (isNaN(a)) return '-';
+  const b = new Date((p.TglKeluar || todayISO()) + 'T00:00:00');
+  if (b < a) return '-';
+  let months = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+  if (b.getDate() < a.getDate()) months--;
+  months = Math.max(0, months);
+  const anchor = new Date(a.getTime());
+  shiftDate(anchor, months);
+  const days = Math.max(0, Math.round((b - anchor) / 86400000));
+  const thn = Math.floor(months / 12), bln = months % 12;
+  const parts = [];
+  if (thn) parts.push(thn + ' thn');
+  if (bln) parts.push(bln + ' bln');
+  if (days || !parts.length) parts.push(days + ' hr');
+  return parts.join(' ');
+}
+
+/* ========================= DATA MOCK (format identik dgn respon backend) ========================= */
+const SEED = {
+  kamar: [
+    { ID: 'K1', No: 'A1', Fasilitas: 'Kipas angin, Kasur, Lemari, Jendela', Harga: 900000, Status: 'Terisi' },
+    { ID: 'K2', No: 'A2', Fasilitas: 'Kipas angin, Kasur, Lemari', Harga: 850000, Status: 'Terisi' },
+    { ID: 'K3', No: 'A3', Fasilitas: 'AC, Kasur, Lemari, Kamar mandi dalam', Harga: 1250000, Status: 'Terisi' },
+    { ID: 'K4', No: 'A4', Fasilitas: 'Kipas angin, Kasur, Lemari', Harga: 850000, Status: 'Kosong' },
+    { ID: 'K5', No: 'B1', Fasilitas: 'Kipas angin, Kasur, Lemari, Balkon', Harga: 1000000, Status: 'Terisi' },
+    { ID: 'K6', No: 'B2', Fasilitas: 'Kipas angin, Kasur, Lemari', Harga: 850000, Status: 'Terisi' },
+    { ID: 'K7', No: 'B3', Fasilitas: 'AC, Kasur, Lemari, Water heater', Harga: 1300000, Status: 'Kosong' },
+    { ID: 'K8', No: 'B4', Fasilitas: 'Kipas angin, Kasur, Lemari', Harga: 850000, Status: 'Kosong' }
+  ],
+  penghuni: [
+    { ID: 'P1', Nama: 'Andi Saputra', NoHP: '081234567890', Tipe: 'Bulanan', TglMasuk: '2026-03-01', KamarID: 'K1', StatusBayar: 'Sudah Bayar', Notes: 'Bayar selalu tepat waktu.' },
+    { ID: 'P2', Nama: 'Siti Rahma', NoHP: '081298765432', Tipe: 'Tahunan', TglMasuk: '2025-09-01', KamarID: 'K2', StatusBayar: 'Sudah Bayar', Notes: 'Sewa tahunan lunas.' },
+    { ID: 'P3', Nama: 'Budi Santoso', NoHP: '085711223344', Tipe: 'Bulanan', TglMasuk: '2026-01-15', KamarID: 'K3', StatusBayar: 'Belum Bayar', Notes: 'Janji bayar akhir bulan.' },
+    { ID: 'P4', Nama: 'Dewi Lestari', NoHP: '081355667788', Tipe: 'Bulanan', TglMasuk: '2026-06-01', KamarID: 'K5', StatusBayar: 'Sudah Bayar', Notes: '' },
+    { ID: 'P5', Nama: 'Rizky Pratama', NoHP: '082144556677', Tipe: 'Bulanan', TglMasuk: '2026-08-01', KamarID: 'K6', StatusBayar: 'Belum Bayar', Notes: 'Mahasiswa baru, minta tempo 5 hari.' },
+    { ID: 'P6', Nama: 'Hendra Wijaya', NoHP: '081399988877', Tipe: 'Bulanan', TglMasuk: '2025-11-01', TglKeluar: '2026-05-20', KamarID: 'K4', StatusBayar: 'Sudah Bayar', Notes: 'Pindah, kontrak selesai.' }
+  ],
+  transaksi: [
+    { ID: 'T1', Tipe: 'Masuk', Nama: 'Andi Saputra', Jumlah: 900000, Tgl: '2026-08-01', Ket: 'Sewa bulanan' },
+    { ID: 'T2', Tipe: 'Masuk', Nama: 'Budi Santoso', Jumlah: 1250000, Tgl: '2026-08-01', Ket: 'Sewa bulanan' },
+    { ID: 'T3', Tipe: 'Masuk', Nama: 'Dewi Lestari', Jumlah: 1000000, Tgl: '2026-08-01', Ket: 'Sewa bulanan' },
+    { ID: 'T4', Tipe: 'Masuk', Nama: 'Siti Rahma', Jumlah: 10200000, Tgl: '2026-08-01', Ket: 'Sewa tahunan 12 bulan' },
+    { ID: 'T5', Tipe: 'Masuk', Nama: 'Rizky Pratama', Jumlah: 850000, Tgl: '2026-08-01', Ket: 'Sewa bulanan' },
+    { ID: 'T6', Tipe: 'Keluar', Nama: 'Listrik', Jumlah: 410000, Tgl: '2026-08-05', Ket: 'Tagihan listrik Agustus' },
+    { ID: 'T7', Tipe: 'Keluar', Nama: 'Kebersihan', Jumlah: 100000, Tgl: '2026-08-20', Ket: 'Honor bersih-bersih' },
+    { ID: 'T8', Tipe: 'Masuk', Nama: 'Andi Saputra', Jumlah: 900000, Tgl: '2026-09-01', Ket: 'Sewa bulanan' },
+    { ID: 'T9', Tipe: 'Masuk', Nama: 'Dewi Lestari', Jumlah: 1000000, Tgl: '2026-09-02', Ket: 'Sewa bulanan' },
+    { ID: 'T10', Tipe: 'Keluar', Nama: 'Listrik', Jumlah: 430000, Tgl: '2026-09-05', Ket: 'Tagihan listrik September' },
+    { ID: 'T11', Tipe: 'Keluar', Nama: 'Air', Jumlah: 150000, Tgl: '2026-09-10', Ket: 'Air bersih' },
+    { ID: 'T12', Tipe: 'Keluar', Nama: 'Perbaikan', Jumlah: 220000, Tgl: '2026-09-12', Ket: 'Ganti kran A2' }
+  ]
+};
+const STORE_KEY = 'kostchamel_db_v1';
+const seedDb = () => JSON.parse(JSON.stringify(SEED));
+function validDb(x) {
+  return !!(x && Array.isArray(x.kamar) && Array.isArray(x.penghuni) && Array.isArray(x.transaksi));
+}
+let db = loadDb();
+function loadDb() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (validDb(parsed)) return parsed;
+    }
+  } catch (e) {}
+  return seedDb();
+}
+function saveDb() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch (e) {}
+}
+const ok = data => ({ success: true, data: data });
+const fail = message => ({ success: false, message: message });
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+/* ========================= API (MOCK + FETCH GAS) ========================= */
+async function mockApi(action, payload) {
+  await delay(150);
+  payload = payload || {};
+  switch (action) {
+    case 'listKamar': return ok(db.kamar);
+    case 'addKamar': {
+      const no = String(payload.No || '').trim();
+      if (!no) return fail('No kamar wajib diisi');
+      if (db.kamar.some(k => k.No === no)) return fail('No kamar sudah dipakai');
+      const item = { ID: 'K' + Date.now(), No: no, Fasilitas: payload.Fasilitas || '', Harga: Number(payload.Harga) || 0, Status: payload.Status || 'Kosong' };
+      db.kamar.push(item); saveDb(); return ok(item);
+    }
+    case 'updateKamar': {
+      const i = db.kamar.findIndex(k => k.ID === payload.ID);
+      if (i < 0) return fail('Kamar tidak ditemukan');
+      if (payload.No !== undefined) {
+        const no = String(payload.No || '').trim();
+        if (!no) return fail('No kamar wajib diisi');
+        if (db.kamar.some((k, idx) => idx !== i && k.No === no)) return fail('No kamar sudah dipakai');
+        payload = Object.assign({}, payload, { No: no });
+      }
+      db.kamar[i] = Object.assign(db.kamar[i], payload); saveDb(); return ok(db.kamar[i]);
+    }
+    case 'deleteKamar': {
+      const i = db.kamar.findIndex(k => k.ID === payload.ID);
+      if (i < 0) return fail('Kamar tidak ditemukan');
+      if (db.penghuni.some(p => p.KamarID === payload.ID && !p.TglKeluar)) return fail('Kamar masih dihuni penghuni — pindahkan/tandai keluar dulu');
+      const removed = db.kamar.splice(i, 1)[0];
+      saveDb(); return ok(removed);
+    }
+    case 'listPenghuni': return ok(db.penghuni);
+    case 'addPenghuni': {
+      if (!String(payload.Nama || '').trim()) return fail('Nama wajib diisi');
+      const hp = String(payload.NoHP || '').replace(/\D/g, '');
+      if (hp.length < 10) return fail('No HP minimal 10 digit angka');
+      if (!payload.TglMasuk) return fail('Tanggal masuk wajib diisi');
+      const item = {
+        ID: 'P' + Date.now(), Nama: payload.Nama.trim(), NoHP: hp,
+        Tipe: payload.Tipe || 'Bulanan', TglMasuk: payload.TglMasuk,
+        KamarID: payload.KamarID || '', StatusBayar: 'Belum Bayar', Notes: payload.Notes || ''
+      };
+      db.penghuni.push(item);
+      const k = db.kamar.find(k => k.ID === item.KamarID);
+      if (k) k.Status = 'Terisi';
+      saveDb(); return ok(item);
+    }
+    case 'updatePenghuni': {
+      const i = db.penghuni.findIndex(p => p.ID === payload.ID);
+      if (i < 0) return fail('Penghuni tidak ditemukan');
+      db.penghuni[i] = Object.assign(db.penghuni[i], payload); saveDb(); return ok(db.penghuni[i]);
+    }
+    case 'listTransaksi': return ok(db.transaksi);
+    case 'addTransaksi': {
+      if (!(Number(payload.Jumlah) > 0)) return fail('Jumlah harus lebih dari Rp 0');
+      if (!payload.Tgl) return fail('Tanggal wajib diisi');
+      if (payload.Tipe === 'Masuk' && !payload.Nama) return fail('Pilih nama penghuni');
+      const item = {
+        ID: 'T' + Date.now(), Tipe: payload.Tipe, Nama: payload.Nama || '-',
+        Jumlah: Number(payload.Jumlah), Tgl: payload.Tgl, Ket: payload.Ket || ''
+      };
+      db.transaksi.unshift(item);
+      if (item.Tipe === 'Masuk') {
+        const p = db.penghuni.find(p => p.Nama === item.Nama);
+        if (p) p.StatusBayar = 'Sudah Bayar';
+      }
+      saveDb(); return ok(item);
+    }
+    default: return fail('Aksi tidak dikenal: ' + action);
+  }
+}
+async function api(action, payload) {
+  if (USE_MOCK) return mockApi(action, payload);
+  const url = GAS_URL[GAS_ENV] || '';
+  if (!url) return fail('Endpoint GAS belum diisi (isi GAS_URL.' + GAS_ENV + ')');
+  const body = JSON.stringify({ action: action, payload: payload || {}, adminKey: auth.admin ? ADMIN_PASSWORD : '' });
+  const req = async () => {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: body,
+      redirect: 'follow'
+    });
+    const data = await res.json();
+    if (!data || (data.success !== true && data.success !== false)) throw new Error('respon tidak valid');
+    return data;
+  };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await req();
+    } catch (e) {
+      if (attempt === 0) await new Promise(r => setTimeout(r, 900));
+      else if (attempt === 1) await new Promise(r => setTimeout(r, 2200));
+    }
+  }
+  return fail('Gagal terhubung ke server');
+}
+
+/* ========================= STORE GLOBAL & UI ========================= */
+const store = Vue.reactive({ kamar: [], penghuni: [], transaksi: [] });
+const ui = Vue.reactive({ toast: { msg: '', type: 'success' } });
+let toastTimer = null;
+function toast(msg, type) {
+  ui.toast = { msg: msg, type: type || 'success' };
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { ui.toast.msg = ''; }, 2600);
+}
+async function refresh() {
+  const [k, p, t] = await Promise.all([api('listKamar'), api('listPenghuni'), api('listTransaksi')]);
+  if (k.success) store.kamar = k.data || [];
+  if (p.success) store.penghuni = p.data || [];
+  if (t.success) store.transaksi = t.data || [];
+  // self-haling: bila MOCK storage korup/kosong total, muat ulang data contoh (non-MOCK: skip)
+  if (USE_MOCK && !store.kamar.length && !store.penghuni.length && !store.transaksi.length) {
+    db = seedDb();
+    saveDb();
+    const again = await Promise.all([api('listKamar'), api('listPenghuni'), api('listTransaksi')]);
+    if (again[0].success) store.kamar = again[0].data || [];
+    if (again[1].success) store.penghuni = again[1].data || [];
+    if (again[2].success) store.transaksi = again[2].data || [];
+  }
+}
+function kamarNo(id) {
+  const k = store.kamar.find(k => k.ID === id);
+  return k ? k.No : '-';
+}
+
+/* ========================= AUTH ADMIN ========================= */
+const auth = Vue.reactive({
+  admin: (function () { try { return sessionStorage.getItem('kostchamel_admin') === '1'; } catch (e) { return false; } })()
+});
+let intendedRoute = '';
+function login(pw) {
+  if (String(pw) !== ADMIN_PASSWORD) return false;
+  auth.admin = true;
+  try { sessionStorage.setItem('kostchamel_admin', '1'); } catch (e) {}
+  return true;
+}
+function logout() {
+  auth.admin = false;
+  try { sessionStorage.removeItem('kostchamel_admin'); } catch (e) {}
+}
+function needsAdmin(route) {
+  return ADMIN_ROUTES.some(r => route === r || route.startsWith(r + '/'));
+}
+
+/* ========================= KOMPONEN ========================= */
+const PageHeader = {
+  props: ['title'],
+  template: `
+  <header class="app-header text-white px-4 pt-4 pb-5 rounded-b-[28px] flex items-center gap-3">
+    <button @click="$go('#/')" class="relative z-10 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-lg active:scale-95 transition" aria-label="Kembali">&#8592;</button>
+    <h1 class="relative z-10 text-[18px] font-extrabold tracking-tight">{{ title }}</h1>
+  </header>`
+};
+
+const BerandaView = {
+  computed: {
+    masuk() { return store.transaksi.filter(t => t.Tipe === 'Masuk').reduce((a, b) => a + b.Jumlah, 0); },
+    keluar() { return store.transaksi.filter(t => t.Tipe === 'Keluar').reduce((a, b) => a + b.Jumlah, 0); },
+    saldo() { return this.masuk - this.keluar; },
+    terisi() { return store.kamar.filter(k => k.Status === 'Terisi').length; },
+    pctOkupansi() { return store.kamar.length ? Math.round(this.terisi / store.kamar.length * 100) : 0; },
+    tunggakan() { return store.penghuni.filter(p => p.StatusBayar === 'Belum Bayar' && !p.TglKeluar).length; },
+    kamarKosong() { return store.kamar.filter(k => k.Status === 'Kosong').length; }
+  },
+  data() {
+    return {
+      menus: [
+        { label: 'Pemasukan', icon: '💵', to: '#/pemasukan', tile: 'bg-emerald-50' },
+        { label: 'Pengeluaran', icon: '🧾', to: '#/pengeluaran', tile: 'bg-orange-50' },
+        { label: 'Daftar Kamar', icon: '🚪', to: '#/kamar', tile: 'bg-sky-50' },
+        { label: 'Penghuni', icon: '👥', to: '#/penghuni', tile: 'bg-violet-50' },
+        { label: 'Tambah Penghuni', icon: '➕', to: '#/penghuni/baru', tile: 'bg-amber-50' },
+        { label: 'Laporan', icon: '📊', to: '#/laporan', tile: 'bg-indigo-50' },
+        { label: 'Tunggakan', icon: '⚠️', to: '#/tunggakan', tile: 'bg-red-50' },
+        { label: 'Cari', icon: '🔍', to: '#/penghuni', tile: 'bg-slate-100' }
+      ]
+    };
+  },
+  methods: {
+    logoutNow() {
+      logout();
+      toast('Berhasil keluar dari admin');
+      this.$go('#/');
+    }
+  },
+  template: `
+  <div>
+    <header class="app-header text-white px-4 pt-4 pb-14 rounded-b-[28px]">
+      <div class="relative z-10 flex items-center gap-3">
+        <div class="w-11 h-11 rounded-full bg-white/20 ring-2 ring-white/25 grid place-items-center text-xl">🏠</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[15px] font-extrabold tracking-tight leading-tight">KOST CHAMEL GOWA</p>
+          <p class="text-[12px] text-white/75 truncate">Penjaga: Ahmad &middot; penjaga@kostchamel.id</p>
+        </div>
+        <button v-if="auth.admin" @click="logoutNow" class="micro relative z-10 bg-white/25 rounded-full px-3 py-2 active:scale-95 transition">ADMIN · Keluar</button>
+        <button v-else @click="$go('#/login')" class="micro relative z-10 bg-white/15 rounded-full px-3 py-2 active:scale-95 transition">Login Admin</button>
+      </div>
+    </header>
+
+    <section class="card -mt-10 mx-4 p-5 text-center relative z-10" style="box-shadow: 0 16px 36px -16px rgba(0, 132, 68, .35), var(--shadow-soft)">
+      <p class="micro text-txt3">Sisa Saldo</p>
+      <p class="text-[28px] font-extrabold grad-text leading-tight mt-0.5">{{ rp(saldo) }}</p>
+      <div class="grid grid-cols-2 gap-2 mt-4">
+        <div class="bg-emerald-50 rounded-[14px] px-3 py-2.5 text-left">
+          <p class="micro text-success">▲ Masuk</p>
+          <p class="text-[14px] font-extrabold text-success mt-0.5">{{ rp(masuk) }}</p>
+        </div>
+        <div class="bg-orange-50 rounded-[14px] px-3 py-2.5 text-left">
+          <p class="micro text-accent">▼ Keluar</p>
+          <p class="text-[14px] font-extrabold text-accent mt-0.5">{{ rp(keluar) }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-4 mt-4 grid grid-cols-2 gap-3">
+      <button @click="$go(menus[0].to)"
+        class="tile rounded-[20px] p-4 h-[92px] flex flex-col items-start justify-center text-left"
+        style="background: var(--grad-brand); color: #fff; box-shadow: 0 14px 28px -14px rgba(0, 132, 68, .65)">
+        <span class="text-xl leading-none">{{ menus[0].icon }}</span>
+        <span class="text-[15px] font-extrabold mt-1.5 leading-none">{{ menus[0].label }}</span>
+        <span class="text-[10px] text-white/75 mt-1">Catat uang masuk</span>
+      </button>
+      <button @click="$go(menus[1].to)"
+        class="tile rounded-[20px] p-4 h-[92px] flex flex-col items-start justify-center text-left"
+        style="background: var(--c-orange); color: #fff; box-shadow: 0 14px 28px -14px rgba(249, 168, 37, .7)">
+        <span class="text-xl leading-none">{{ menus[1].icon }}</span>
+        <span class="text-[15px] font-extrabold mt-1.5 leading-none">{{ menus[1].label }}</span>
+        <span class="text-[10px] text-white/80 mt-1">Catat pengeluaran</span>
+      </button>
+    </section>
+
+    <section class="mx-4 mt-3 grid grid-cols-3 gap-2.5">
+      <button v-for="m in menus.slice(2)" :key="m.label" @click="$go(m.to)"
+        class="card tile py-3.5 flex flex-col items-center gap-1.5">
+        <span class="w-10 h-10 rounded-[14px] grid place-items-center text-lg" :class="m.tile">{{ m.icon }}</span>
+        <span class="text-[10px] font-semibold text-txt2 text-center leading-tight px-1">{{ m.label }}</span>
+      </button>
+    </section>
+
+    <section class="card mx-4 mt-3.5 p-4">
+      <div class="flex items-center justify-between">
+        <p class="text-[14px] font-extrabold">Okupansi Kamar</p>
+        <span class="text-[11px] font-bold text-brand bg-brand/10 rounded-full px-2 py-0.5">{{ terisi }}/{{ store.kamar.length || 0 }} terisi</span>
+      </div>
+      <div class="mt-3 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all duration-500" style="background: var(--grad-brand)" :style="{ width: pctOkupansi + '%' }"></div>
+      </div>
+      <div class="flex justify-between mt-2 text-[10px] text-txt3">
+        <span>{{ kamarKosong }} kamar kosong tersedia</span>
+        <span class="font-extrabold text-brand text-[13px]">{{ pctOkupansi }}%</span>
+      </div>
+    </section>
+
+    <section v-if="tunggakan > 0" class="mx-4 mt-3 bg-red-50 border border-red-100 rounded-[20px] p-4 flex items-center gap-3 press transition" @click="$go('#/tunggakan')">
+      <span class="w-10 h-10 rounded-full bg-danger/10 grid place-items-center text-lg shrink-0">⚠️</span>
+      <div class="flex-1">
+        <p class="text-[14px] font-extrabold text-danger">{{ tunggakan }} penghuni belum bayar</p>
+        <p class="text-[11px] text-txt2">Ketuk untuk lihat daftar &amp; hubungi via WhatsApp</p>
+      </div>
+      <span class="w-8 h-8 rounded-full bg-white grid place-items-center text-danger shadow-soft shrink-0">&#8250;</span>
+    </section>
+
+    <p class="text-center text-[10px] text-txt3 mt-5">KOST CHAMEL GOWA &middot; data tersimpan di Google Sheets</p>
+  </div>`
+};
+
+const KamarView = {
+  data() {
+    return { sel: null, showAdd: false, showEdit: false, confirmHapus: false, busy: false, err: '', form: { No: '', Fasilitas: '', Harga: '', Status: 'Kosong' }, formEdit: { ID: '', No: '', Fasilitas: '', Harga: '' } };
+  },
+  methods: {
+    open(k) { this.sel = k; },
+    async toggleStatus() {
+      const next = this.sel.Status === 'Terisi' ? 'Kosong' : 'Terisi';
+      const r = await api('updateKamar', { ID: this.sel.ID, Status: next });
+      if (r.success) {
+        await refresh();
+        this.sel = store.kamar.find(k => k.ID === r.data.ID) || null;
+        toast('Status kamar diperbarui');
+      } else toast(r.message, 'error');
+    },
+    bukaEdit() {
+      this.err = '';
+      this.confirmHapus = false;
+      this.formEdit = { ID: this.sel.ID, No: this.sel.No, Fasilitas: this.sel.Fasilitas, Harga: this.sel.Harga };
+      this.showEdit = true;
+    },
+    async simpanEdit() {
+      this.err = '';
+      const no = String(this.formEdit.No || '').trim();
+      if (!no) { this.err = 'No kamar wajib diisi'; return; }
+      if (store.kamar.some(x => x.No === no && x.ID !== this.formEdit.ID)) { this.err = 'No kamar sudah dipakai'; return; }
+      if (!(Number(this.formEdit.Harga) > 0)) { this.err = 'Harga sewa harus lebih dari Rp 0'; return; }
+      this.formEdit.No = no;
+      this.busy = true;
+      const r = await api('updateKamar', this.formEdit);
+      this.busy = false;
+      if (r.success) {
+        await refresh();
+        this.sel = store.kamar.find(k => k.ID === r.data.ID) || null;
+        this.showEdit = false;
+        this.confirmHapus = false;
+        toast('Kamar diperbarui');
+      } else toast(r.message, 'error');
+    },
+    async hapus() {
+      if (!this.confirmHapus) { this.confirmHapus = true; return; }
+      this.err = '';
+      this.busy = true;
+      const r = await api('deleteKamar', { ID: this.formEdit.ID });
+      this.busy = false;
+      this.confirmHapus = false;
+      if (r.success) {
+        await refresh();
+        this.showEdit = false;
+        this.sel = null;
+        toast('Kamar berhasil dihapus');
+      } else {
+        this.err = r.message;
+        toast(r.message, 'error');
+      }
+    },
+    async tambah() {
+      this.err = '';
+      if (!this.form.No.trim()) { this.err = 'No kamar wajib diisi'; return; }
+      if (store.kamar.some(k => k.No === this.form.No.trim())) { this.err = 'No kamar sudah dipakai'; return; }
+      if (!(Number(this.form.Harga) > 0)) { this.err = 'Harga sewa harus lebih dari Rp 0'; return; }
+      this.busy = true;
+      const r = await api('addKamar', this.form);
+      this.busy = false;
+      if (r.success) {
+        await refresh(); this.showAdd = false;
+        this.form = { No: '', Fasilitas: '', Harga: '', Status: 'Kosong' };
+        toast('Kamar berhasil ditambahkan');
+      } else toast(r.message, 'error');
+    }
+  },
+  template: `
+  <div>
+    <page-header title="Daftar Kamar"></page-header>
+
+    <div class="px-4 mt-4 flex justify-between items-center">
+      <p class="text-[12px] text-txt2">{{ store.kamar.length }} kamar terdaftar<span v-if="!auth.admin"> &middot; lihat saja</span></p>
+      <button v-if="auth.admin" @click="showAdd = true" class="btn btn-brand px-4 py-2.5 text-[13px] rounded-full">+ Tambah</button>
+    </div>
+
+    <div class="px-4 mt-3 grid grid-cols-2 gap-3 pb-8">
+      <button v-for="k in store.kamar" :key="k.ID" @click="open(k)"
+        class="card tile p-4 text-left">
+        <div class="flex items-center justify-between">
+          <span class="text-[18px] font-bold">Kamar {{ k.No }}</span>
+          <span class="text-[10px] font-bold rounded-full px-2 py-0.5"
+            :class="k.Status === 'Terisi' ? 'bg-red-50 text-danger' : 'bg-emerald-50 text-success'">{{ k.Status }}</span>
+        </div>
+        <p class="text-[12px] text-txt2 mt-1 line-clamp-2 leading-snug">{{ k.Fasilitas || 'Tanpa fasilitas' }}</p>
+        <p class="text-[14px] font-bold text-brand mt-2">{{ rp(k.Harga) }}<span class="text-[10px] font-normal text-txt3">/bulan</span></p>
+      </button>
+    </div>
+
+    <transition name="modal">
+      <div v-if="sel" class="fixed inset-0 z-50 bg-black/40 flex items-end justify-center" @click.self="sel = null">
+        <div class="bg-surface w-full max-w-md rounded-t-[20px] p-5 pb-8">
+          <div class="sheet-handle"></div>
+          <div class="flex items-center justify-between">
+            <h2 class="text-[18px] font-bold">Kamar {{ sel.No }}</h2>
+            <span class="text-[10px] font-bold rounded-full px-2 py-1"
+              :class="sel.Status === 'Terisi' ? 'bg-red-50 text-danger' : 'bg-emerald-50 text-success'">{{ sel.Status }}</span>
+          </div>
+          <p class="text-[12px] text-txt2 mt-3 font-bold uppercase tracking-wide">Fasilitas</p>
+          <p class="text-[14px] mt-1 leading-relaxed">{{ sel.Fasilitas || 'Tanpa fasilitas' }}</p>
+          <p class="text-[12px] text-txt2 mt-3 font-bold uppercase tracking-wide">Harga Sewa</p>
+          <p class="text-[18px] font-bold text-brand">{{ rp(sel.Harga) }} / bulan</p>
+          <div class="mt-4 space-y-2">
+            <div v-if="auth.admin" class="flex gap-2">
+              <button @click="bukaEdit" class="btn btn-brand flex-1 py-3 text-[14px]">Edit Data</button>
+              <button @click="toggleStatus" class="btn btn-ghost flex-1 py-3 text-[14px]">
+                Tandai {{ sel.Status === 'Terisi' ? 'Kosong' : 'Terisi' }}
+              </button>
+            </div>
+            <p v-else class="text-[10px] text-txt3 text-center">Mode lihat saja — login admin untuk mengedit.</p>
+            <button @click="sel = null" class="btn btn-ghost w-full py-3 text-[14px]">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="modal">
+      <div v-if="showAdd" class="fixed inset-0 z-50 bg-black/40 flex items-end justify-center" @click.self="showAdd = false">
+        <form @submit.prevent="tambah" class="bg-surface w-full max-w-md rounded-t-[20px] p-5 pb-8">
+          <div class="sheet-handle"></div>
+          <h2 class="text-[18px] font-bold mb-4">Tambah Kamar</h2>
+          <label class="label">No Kamar</label>
+          <input v-model="form.No" class="field mb-3" placeholder="cth. A5">
+          <label class="label">Fasilitas</label>
+          <textarea v-model="form.Fasilitas" rows="2" class="field mb-3" placeholder="pisahkan dengan koma"></textarea>
+          <label class="label">Harga Sewa / bulan</label>
+          <input v-model="form.Harga" type="number" inputmode="numeric" min="1" class="field mb-3" placeholder="850000">
+          <p v-if="err" class="text-[12px] text-danger mb-3">{{ err }}</p>
+          <div class="flex gap-2">
+            <button type="button" @click="showAdd = false" class="btn btn-ghost flex-1 py-3 text-[14px]">Batal</button>
+            <button type="submit" :disabled="busy" class="btn btn-brand flex-1 py-3 text-[14px]">{{ busy ? 'Menyimpan…' : 'Simpan' }}</button>
+          </div>
+        </form>
+      </div>
+    </transition>
+
+    <transition name="modal">
+      <div v-if="showEdit" class="fixed inset-0 z-50 bg-black/40 flex items-end justify-center" @click.self="showEdit = false">
+        <form @submit.prevent="simpanEdit" class="bg-surface w-full max-w-md rounded-t-[20px] p-5 pb-8">
+          <div class="sheet-handle"></div>
+          <h2 class="text-[18px] font-bold mb-4">Edit Kamar</h2>
+          <label class="label">No Kamar</label>
+          <input v-model="formEdit.No" class="field mb-3" placeholder="cth. A1">
+          <label class="label">Fasilitas</label>
+          <textarea v-model="formEdit.Fasilitas" rows="3" class="field mb-3" placeholder="pisahkan dengan koma"></textarea>
+          <label class="label">Harga Sewa / bulan</label>
+          <input v-model="formEdit.Harga" type="number" inputmode="numeric" min="1" class="field mb-3">
+          <p v-if="err" class="text-[12px] text-danger mb-3">{{ err }}</p>
+          <div class="flex gap-2">
+            <button type="button" @click="showEdit = false; confirmHapus = false" class="btn btn-ghost flex-1 py-3 text-[14px]">Batal</button>
+            <button type="submit" :disabled="busy" class="btn btn-brand flex-1 py-3 text-[14px]">{{ busy ? 'Menyimpan…' : 'Simpan' }}</button>
+          </div>
+          <button type="button" @click="hapus" :disabled="busy"
+            class="btn w-full mt-2 py-3 text-[14px]"
+            :class="confirmHapus ? 'bg-danger text-white' : 'bg-red-50 text-danger'">
+            {{ busy ? 'Memproses…' : (confirmHapus ? 'Tap sekali lagi untuk hapus permanen' : '🗑 Hapus Kamar') }}
+          </button>
+        </form>
+      </div>
+    </transition>
+  </div>`
+};
+
+const PenghuniView = {
+  data() {
+    return { q: '', filter: 'semua', sel: null, draftNotes: '', busy: false };
+  },
+  computed: {
+    list() {
+      let arr = store.penghuni.slice();
+      if (this.filter === 'belum') arr = arr.filter(p => p.StatusBayar === 'Belum Bayar');
+      const q = this.q.trim().toLowerCase();
+      if (q.length >= 2) {
+        arr = arr.filter(p => p.Nama.toLowerCase().includes(q) || p.NoHP.includes(q) || kamarNo(p.KamarID).toLowerCase().includes(q));
+      }
+      return arr;
+    },
+    hint() { return this.q.trim().length === 1 ? 'Ketik minimal 2 karakter untuk mencari' : ''; }
+  },
+  methods: {
+    open(p) { this.sel = p; this.draftNotes = p.Notes || ''; },
+    async simpanNotes() {
+      this.busy = true;
+      const r = await api('updatePenghuni', { ID: this.sel.ID, Notes: this.draftNotes });
+      this.busy = false;
+      if (r.success) { await refresh(); this.sel = null; toast('Catatan tersimpan'); }
+      else toast(r.message, 'error');
+    },
+    async keluar() {
+      this.busy = true;
+      const r = await api('updatePenghuni', { ID: this.sel.ID, TglKeluar: todayISO() });
+      if (r.success && this.sel.KamarID) await api('updateKamar', { ID: this.sel.KamarID, Status: 'Kosong' });
+      this.busy = false;
+      if (r.success) {
+        await refresh();
+        this.sel = store.penghuni.find(p => p.ID === r.data.ID) || null;
+        toast('Penghuni ditandai keluar, kamar dikosongkan');
+      } else toast(r.message, 'error');
+    }
+  },
+  template: `
+  <div>
+    <page-header title="Data Penghuni"></page-header>
+
+    <div class="px-4 mt-4">
+      <input v-model="q" class="field" placeholder="Cari nama / no. HP / kamar">
+      <p v-if="hint" class="text-[10px] text-txt3 mt-1 px-1">{{ hint }}</p>
+      <div class="flex gap-2 mt-3">
+        <button @click="filter = 'semua'" class="text-[12px] font-bold rounded-full px-3 py-1.5 transition"
+          :class="filter === 'semua' ? 'bg-brand text-white' : 'bg-surface text-txt2 shadow-soft'">Semua</button>
+        <button @click="filter = 'belum'" class="text-[12px] font-bold rounded-full px-3 py-1.5 transition"
+          :class="filter === 'belum' ? 'bg-danger text-white' : 'bg-surface text-txt2 shadow-soft'">Belum Bayar</button>
+      </div>
+    </div>
+
+    <div class="px-4 mt-3 space-y-3 pb-8">
+      <div v-if="list.length === 0" class="text-center text-[12px] text-txt3 py-10">Tidak ada data penghuni</div>
+      <div v-for="p in list" :key="p.ID" class="card row-card p-4 flex items-center gap-3">
+        <button @click="open(p)" class="flex items-center gap-3 flex-1 min-w-0 text-left active:scale-[0.99] transition">
+          <span class="w-10 h-10 rounded-full grid place-items-center font-extrabold text-[14px] shrink-0"
+            style="background: linear-gradient(135deg, rgba(0, 132, 68, .14), rgba(40, 167, 69, .2)); color: var(--c-primary)">{{ p.Nama.charAt(0) }}</span>
+          <span class="min-w-0 flex-1">
+            <span class="block text-[14px] font-bold truncate">{{ p.Nama }}</span>
+            <span class="block text-[12px] text-txt2 truncate">{{ maskHp(p.NoHP) }} &middot; Kmr {{ kamarNo(p.KamarID) }}</span>
+            <span v-if="p.TglKeluar" class="block text-[10px] font-bold mt-0.5 text-txt3">SUDAH KELUAR · {{ tgl(p.TglKeluar) }}</span>
+            <span v-else class="block text-[10px] font-bold mt-0.5"
+              :class="p.StatusBayar === 'Belum Bayar' ? 'text-danger' : 'text-success'">{{ p.StatusBayar }}</span>
+          </span>
+        </button>
+        <a :href="waLink(p.NoHP)" target="_blank" rel="noopener"
+          class="w-10 h-10 rounded-full bg-success grid place-items-center text-white text-lg active:scale-95 transition shrink-0" aria-label="Chat WhatsApp">💬</a>
+      </div>
+    </div>
+
+    <transition name="modal">
+      <div v-if="sel" class="fixed inset-0 z-50 bg-black/40 flex items-end justify-center" @click.self="sel = null">
+        <div class="bg-surface w-full max-w-md rounded-t-[20px] p-5 pb-8 max-h-[85vh] overflow-y-auto">
+          <div class="sheet-handle"></div>
+          <div class="flex items-center justify-between">
+            <h2 class="text-[18px] font-bold">{{ sel.Nama }}</h2>
+            <span class="text-[10px] font-bold rounded-full px-2 py-1"
+              :class="sel.StatusBayar === 'Belum Bayar' ? 'bg-red-50 text-danger' : 'bg-emerald-50 text-success'">{{ sel.StatusBayar }}</span>
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-3 text-[12px]">
+            <div><p class="text-txt3">No HP</p><p class="font-bold text-[14px]">{{ sel.NoHP }}</p></div>
+            <div><p class="text-txt3">Kamar</p><p class="font-bold text-[14px]">{{ kamarNo(sel.KamarID) }}</p></div>
+            <div><p class="text-txt3">Tipe Sewa</p><p class="font-bold text-[14px]">{{ sel.Tipe }}</p></div>
+            <div><p class="text-txt3">Tanggal Masuk</p><p class="font-bold text-[14px]">{{ tgl(sel.TglMasuk) }}</p></div>
+            <div><p class="text-txt3">Jatuh Tempo Berikutnya</p><p class="font-bold text-[14px] text-brand">{{ sel.TglKeluar ? '-' : tgl(jatuhTempo(sel)) }}</p></div>
+            <div v-if="sel.TglKeluar" class="col-span-2"><p class="text-txt3">Tanggal Keluar</p><p class="font-bold text-[14px] text-txt2">{{ tgl(sel.TglKeluar) }} &middot; lama sewa {{ durasiSewa(sel) }}</p></div>
+          </div>
+          <label class="label mt-4">Catatan</label>
+          <textarea v-if="auth.admin" v-model="draftNotes" rows="2" class="field" placeholder="cth. janji bayar akhir bulan"></textarea>
+          <p v-else class="text-[14px] bg-bgapp rounded-xl px-3 py-3 min-h-[44px]">{{ draftNotes || 'Tidak ada catatan' }}</p>
+          <div class="mt-4 flex gap-2">
+            <a :href="waLink(sel.NoHP)" target="_blank" rel="noopener"
+              class="w-12 grid place-items-center press rounded-xl text-lg btn-success" aria-label="WhatsApp">💬</a>
+            <button v-if="auth.admin && !sel.TglKeluar" @click="keluar"
+              class="bg-danger text-white text-[14px] font-bold rounded-xl px-3 active:scale-95 transition">Tandai Keluar</button>
+            <button v-if="auth.admin" @click="simpanNotes" :disabled="busy"
+              class="btn btn-brand flex-1 py-3 text-[14px]">{{ busy ? 'Menyimpan…' : 'Simpan Catatan' }}</button>
+            <button @click="sel = null" class="btn btn-ghost px-4 py-3 text-[14px]">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+  </div>`
+};
+
+const PenghuniBaruView = {
+  data() {
+    return {
+      busy: false, err: '',
+      form: { Nama: '', NoHP: '', Tipe: 'Bulanan', TglMasuk: todayISO(), KamarID: '', Notes: '' }
+    };
+  },
+  computed: {
+    kamarKosong() { return store.kamar.filter(k => k.Status === 'Kosong'); }
+  },
+  methods: {
+    async simpan() {
+      this.err = '';
+      if (!this.form.Nama.trim()) { this.err = 'Nama wajib diisi'; return; }
+      if (this.form.NoHP.replace(/\D/g, '').length < 10) { this.err = 'No HP minimal 10 digit angka'; return; }
+      if (!this.form.TglMasuk) { this.err = 'Tanggal masuk wajib diisi'; return; }
+      if (!this.form.KamarID) { this.err = 'Pilih kamar'; return; }
+      this.busy = true;
+      const r = await api('addPenghuni', this.form);
+      this.busy = false;
+      if (r.success) {
+        await refresh();
+        toast('Data Berhasil Disimpan');
+        this.$go('#/penghuni');
+      } else toast(r.message, 'error');
+    }
+  },
+  template: `
+  <div>
+    <page-header title="Tambah Penghuni"></page-header>
+    <form @submit.prevent="simpan" class="px-4 mt-4 pb-8">
+      <div class="card p-4 space-y-3">
+        <div>
+          <label class="label">Nama Lengkap</label>
+          <input v-model="form.Nama" class="field" placeholder="Nama penghuni">
+        </div>
+        <div>
+          <label class="label">No HP (WhatsApp)</label>
+          <input v-model="form.NoHP" type="tel" inputmode="numeric" class="field" placeholder="08xxxxxxxxxx">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="label">Tipe Sewa</label>
+            <select v-model="form.Tipe" class="field">
+              <option>Bulanan</option>
+              <option>Tahunan</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Tanggal Masuk</label>
+            <input v-model="form.TglMasuk" type="date" class="field">
+          </div>
+        </div>
+        <div>
+          <label class="label">Kamar</label>
+          <select v-model="form.KamarID" class="field">
+            <option value="" disabled>Pilih kamar kosong</option>
+            <option v-for="k in kamarKosong" :key="k.ID" :value="k.ID">Kmr {{ k.No }} &middot; {{ rp(k.Harga) }}</option>
+          </select>
+          <p v-if="kamarKosong.length === 0" class="text-[12px] text-danger mt-1">Semua kamar terisi — tambah kamar dulu.</p>
+        </div>
+        <div>
+          <label class="label">Catatan (opsional)</label>
+          <textarea v-model="form.Notes" rows="2" class="field" placeholder="perilaku, janji bayar, dll."></textarea>
+        </div>
+        <p v-if="err" class="text-[12px] text-danger">{{ err }}</p>
+        <button type="submit" :disabled="busy"
+          class="btn btn-brand w-full py-4 text-[16px]">{{ busy ? 'Menyimpan…' : 'Simpan Penghuni' }}</button>
+        <p class="text-[10px] text-txt3 text-center">Tipe sewa menentukan perhitungan tanggal jatuh tempo otomatis.</p>
+      </div>
+    </form>
+  </div>`
+};
+
+const PemasukanView = {
+  data() {
+    return {
+      busy: false, err: '',
+      form: { Tipe: 'Masuk', Nama: '', Jumlah: '', Tgl: todayISO(), Ket: '' }
+    };
+  },
+  methods: {
+    async simpan() {
+      this.err = '';
+      if (!this.form.Nama) { this.err = 'Pilih nama penghuni (belum terdaftar? Tambah Penghuni dulu)'; return; }
+      if (!(Number(this.form.Jumlah) > 0)) { this.err = 'Jumlah harus lebih dari Rp 0'; return; }
+      if (!this.form.Tgl) { this.err = 'Tanggal wajib diisi'; return; }
+      this.busy = true;
+      const r = await api('addTransaksi', this.form);
+      this.busy = false;
+      if (r.success) {
+        await refresh();
+        toast('Data Berhasil Disimpan');
+        this.$go('#/');
+      } else toast(r.message, 'error');
+    }
+  },
+  template: `
+  <div>
+    <page-header title="Catat Pemasukan"></page-header>
+    <form @submit.prevent="simpan" class="px-4 mt-4 pb-8">
+      <div class="card p-4 space-y-3">
+        <div>
+          <label class="label">Nama Penghuni</label>
+          <select v-model="form.Nama" class="field">
+            <option value="" disabled>Pilih penghuni</option>
+            <option v-for="p in store.penghuni" :key="p.ID" :value="p.Nama">{{ p.Nama }} (Kmr {{ kamarNo(p.KamarID) }})</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Jumlah Diterima</label>
+          <input v-model="form.Jumlah" type="number" inputmode="numeric" min="1" class="field" placeholder="900000">
+        </div>
+        <div>
+          <label class="label">Tanggal Bayar</label>
+          <input v-model="form.Tgl" type="date" class="field">
+        </div>
+        <div>
+          <label class="label">Keterangan</label>
+          <input v-model="form.Ket" class="field" placeholder="cth. Sewa bulanan">
+        </div>
+        <p v-if="err" class="text-[12px] text-danger">{{ err }}</p>
+        <button type="submit" :disabled="busy"
+          class="btn btn-success w-full py-4 text-[16px]">{{ busy ? 'Menyimpan…' : 'Simpan Pemasukan' }}</button>
+        <p class="text-[10px] text-txt3 text-center">Saldo dashboard terupdate otomatis setelah tersimpan.</p>
+      </div>
+    </form>
+  </div>`
+};
+
+const PengeluaranView = {
+  data() {
+    return {
+      busy: false, err: '',
+      kategori: ['Listrik', 'Air', 'Perbaikan', 'Kebersihan', 'Lainnya'],
+      form: { Tipe: 'Keluar', Nama: 'Listrik', Jumlah: '', Tgl: todayISO(), Ket: '' }
+    };
+  },
+  methods: {
+    async simpan() {
+      this.err = '';
+      if (!(Number(this.form.Jumlah) > 0)) { this.err = 'Jumlah harus lebih dari Rp 0'; return; }
+      if (!this.form.Tgl) { this.err = 'Tanggal wajib diisi'; return; }
+      this.busy = true;
+      const r = await api('addTransaksi', this.form);
+      this.busy = false;
+      if (r.success) {
+        await refresh();
+        toast('Data Berhasil Disimpan');
+        this.$go('#/');
+      } else toast(r.message, 'error');
+    }
+  },
+  template: `
+  <div>
+    <page-header title="Catat Pengeluaran"></page-header>
+    <form @submit.prevent="simpan" class="px-4 mt-4 pb-8">
+      <div class="card p-4 space-y-3">
+        <div>
+          <label class="label">Kategori</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button v-for="k in kategori" :key="k" type="button" @click="form.Nama = k"
+              class="text-[12px] font-bold rounded-xl py-2.5 transition active:scale-95"
+              :class="form.Nama === k ? 'bg-accent text-white' : 'bg-bgapp text-txt2'">{{ k }}</button>
+          </div>
+        </div>
+        <div>
+          <label class="label">Jumlah</label>
+          <input v-model="form.Jumlah" type="number" inputmode="numeric" min="1" class="field" placeholder="150000">
+        </div>
+        <div>
+          <label class="label">Tanggal</label>
+          <input v-model="form.Tgl" type="date" class="field">
+        </div>
+        <div>
+          <label class="label">Keterangan</label>
+          <input v-model="form.Ket" class="field" placeholder="cth. Ganti kran A2">
+        </div>
+        <p v-if="err" class="text-[12px] text-danger">{{ err }}</p>
+        <button type="submit" :disabled="busy"
+          class="btn btn-accent w-full py-4 text-[16px]">{{ busy ? 'Menyimpan…' : 'Simpan Pengeluaran' }}</button>
+      </div>
+    </form>
+  </div>`
+};
+
+const LaporanView = {
+  data() {
+    return { mode: 'bulanan', ym: thisYm(), year: Number(thisYm().slice(0, 4)) };
+  },
+  computed: {
+    /* ---------- BULANAN ---------- */
+    minYm() {
+      const ts = store.transaksi.map(t => ymOf(t.Tgl)).sort();
+      return ts[0] || thisYm();
+    },
+    trx() {
+      return store.transaksi
+        .filter(t => ymOf(t.Tgl) === this.ym)
+        .sort((a, b) => b.Tgl.localeCompare(a.Tgl));
+    },
+    masuk() { return this.trx.filter(t => t.Tipe === 'Masuk').reduce((a, b) => a + b.Jumlah, 0); },
+    keluar() { return this.trx.filter(t => t.Tipe === 'Keluar').reduce((a, b) => a + b.Jumlah, 0); },
+    laba() { return this.masuk - this.keluar; },
+    barMax() { return Math.max(this.masuk, this.keluar, 1); },
+    canPrev() { return this.ym > this.minYm; },
+    canNext() { return this.ym < thisYm(); },
+    /* ---------- TAHUNAN ---------- */
+    minYear() {
+      const ys = store.transaksi.map(t => Number(t.Tgl.slice(0, 4)))
+        .concat(store.penghuni.map(p => Number((p.TglMasuk || '').slice(0, 4))))
+        .filter(y => y > 1970);
+      return ys.length ? Math.min.apply(null, ys) : Number(thisYm().slice(0, 4));
+    },
+    trxTahun() { return store.transaksi.filter(t => t.Tgl.slice(0, 4) === String(this.year)); },
+    masukT() { return this.trxTahun.filter(t => t.Tipe === 'Masuk').reduce((a, b) => a + b.Jumlah, 0); },
+    keluarT() { return this.trxTahun.filter(t => t.Tipe === 'Keluar').reduce((a, b) => a + b.Jumlah, 0); },
+    labaT() { return this.masukT - this.keluarT; },
+    barMaxT() { return Math.max(this.masukT, this.keluarT, 1); },
+    canPrevT() { return this.year > this.minYear; },
+    canNextT() { return this.year < Number(thisYm().slice(0, 4)); },
+    perMonth() {
+      const rows = [];
+      const cur = thisYm();
+      for (let m = 1; m <= 12; m++) {
+        const ym = this.year + '-' + String(m).padStart(2, '0');
+        if (ym > cur) break;
+        const list = store.transaksi.filter(t => ymOf(t.Tgl) === ym);
+        const mk = list.filter(t => t.Tipe === 'Masuk').reduce((a, b) => a + b.Jumlah, 0);
+        const kl = list.filter(t => t.Tipe === 'Keluar').reduce((a, b) => a + b.Jumlah, 0);
+        rows.push({
+          ym: ym,
+          label: new Date(ym + '-01T00:00:00').toLocaleDateString('id-ID', { month: 'short' }),
+          masuk: mk, keluar: kl, laba: mk - kl
+        });
+      }
+      return rows;
+    },
+    /* ---------- RIWAYAT PENYEWA ---------- */
+    riwayat() {
+      return store.penghuni.slice()
+        .sort((a, b) => (b.TglMasuk || '').localeCompare(a.TglMasuk || ''))
+        .map(p => ({
+          ID: p.ID, Nama: p.Nama, NoHP: p.NoHP, Kamar: kamarNo(p.KamarID),
+          Masuk: p.TglMasuk, Keluar: p.TglKeluar || '',
+          status: p.TglKeluar ? 'Keluar' : 'Aktif', durasi: durasiSewa(p)
+        }));
+    }
+  },
+  methods: {
+    prev() { if (this.canPrev) this.ym = shiftYm(this.ym, -1); },
+    next() { if (this.canNext) this.ym = shiftYm(this.ym, 1); },
+    prevY() { if (this.canPrevT) this.year--; },
+    nextY() { if (this.canNextT) this.year++; },
+    width(v) { return Math.round(v / this.barMax * 100) + '%'; },
+    widthT(v) { return Math.round(v / this.barMaxT * 100) + '%'; }
+  },
+  template: `
+  <div>
+    <page-header title="Laporan Admin"></page-header>
+
+    <div class="px-4 mt-4">
+      <div class="bg-bgapp rounded-full p-1 flex gap-1">
+        <button @click="mode = 'bulanan'" class="flex-1 text-[14px] font-extrabold rounded-full py-2.5 transition active:scale-95"
+          :class="mode === 'bulanan' ? 'bg-brand text-white' : 'text-txt2'">Bulanan</button>
+        <button @click="mode = 'tahunan'" class="flex-1 text-[14px] font-extrabold rounded-full py-2.5 transition active:scale-95"
+          :class="mode === 'tahunan' ? 'bg-brand text-white' : 'text-txt2'">Tahunan</button>
+      </div>
+    </div>
+
+    <!-- ============ BULANAN ============ -->
+    <template v-if="mode === 'bulanan'">
+      <div class="px-4 mt-3">
+        <div class="card p-3 flex items-center justify-between">
+          <button @click="prev" :disabled="!canPrev" class="w-9 h-9 rounded-full bg-bgapp grid place-items-center text-lg active:scale-95 transition disabled:opacity-30">&#8249;</button>
+          <p class="text-[14px] font-bold">{{ ymLabel(ym) }}</p>
+          <button @click="next" :disabled="!canNext" class="w-9 h-9 rounded-full bg-bgapp grid place-items-center text-lg active:scale-95 transition disabled:opacity-30">&#8250;</button>
+        </div>
+
+        <div class="card p-4 mt-3 text-center">
+          <p class="text-[12px] text-txt2">Laba Bersih Bulan Ini</p>
+          <p class="text-[24px] font-bold" :class="laba >= 0 ? 'text-brand' : 'text-danger'">{{ rp(laba) }}</p>
+        </div>
+
+        <div class="card p-4 mt-3 space-y-3">
+          <div>
+            <div class="flex justify-between text-[12px] mb-1">
+              <span class="text-success font-bold">Pemasukan</span>
+              <span class="font-bold">{{ rp(masuk) }}</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-[4px] overflow-hidden">
+              <div class="h-full bg-success rounded-[4px] transition-all" :style="{ width: width(masuk) }"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[12px] mb-1">
+              <span class="text-accent font-bold">Pengeluaran</span>
+              <span class="font-bold">{{ rp(keluar) }}</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-[4px] overflow-hidden">
+              <div class="h-full bg-accent rounded-[4px] transition-all" :style="{ width: width(keluar) }"></div>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-[14px] font-bold mb-2 mt-4">Rincian Transaksi</p>
+        <div v-if="trx.length === 0" class="card text-center text-[12px] text-txt3 py-8">Belum ada transaksi bulan ini</div>
+        <div v-for="t in trx" :key="t.ID" class="card row-card p-3 mb-2 flex items-center gap-3">
+          <span class="w-8 h-8 rounded-full grid place-items-center text-sm shrink-0"
+            :class="t.Tipe === 'Masuk' ? 'bg-emerald-50 text-success' : 'bg-orange-50 text-accent'">{{ t.Tipe === 'Masuk' ? '▲' : '▼' }}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[14px] font-bold truncate">{{ t.Nama }}</p>
+            <p class="text-[10px] text-txt3">{{ tgl(t.Tgl) }} &middot; {{ t.Ket || '-' }}</p>
+          </div>
+          <span class="text-[14px] font-bold shrink-0" :class="t.Tipe === 'Masuk' ? 'text-success' : 'text-accent'">
+            {{ t.Tipe === 'Masuk' ? '+' : '-' }}{{ rp(t.Jumlah) }}
+          </span>
+        </div>
+      </div>
+    </template>
+
+    <!-- ============ TAHUNAN ============ -->
+    <template v-else>
+      <div class="px-4 mt-3">
+        <div class="card p-3 flex items-center justify-between">
+          <button @click="prevY" :disabled="!canPrevT" class="w-9 h-9 rounded-full bg-bgapp grid place-items-center text-lg active:scale-95 transition disabled:opacity-30">&#8249;</button>
+          <p class="text-[14px] font-bold">Tahun {{ year }}</p>
+          <button @click="nextY" :disabled="!canNextT" class="w-9 h-9 rounded-full bg-bgapp grid place-items-center text-lg active:scale-95 transition disabled:opacity-30">&#8250;</button>
+        </div>
+
+        <div class="card p-4 mt-3 text-center">
+          <p class="text-[12px] text-txt2">Laba Bersih Tahun {{ year }}</p>
+          <p class="text-[24px] font-bold" :class="labaT >= 0 ? 'text-brand' : 'text-danger'">{{ rp(labaT) }}</p>
+        </div>
+
+        <div class="card p-4 mt-3 space-y-3">
+          <div>
+            <div class="flex justify-between text-[12px] mb-1">
+              <span class="text-success font-bold">Total Pemasukan</span>
+              <span class="font-bold">{{ rp(masukT) }}</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-[4px] overflow-hidden">
+              <div class="h-full bg-success rounded-[4px] transition-all" :style="{ width: widthT(masukT) }"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[12px] mb-1">
+              <span class="text-accent font-bold">Total Pengeluaran</span>
+              <span class="font-bold">{{ rp(keluarT) }}</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-[4px] overflow-hidden">
+              <div class="h-full bg-accent rounded-[4px] transition-all" :style="{ width: widthT(keluarT) }"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-4 mt-3">
+          <p class="text-[14px] font-bold mb-2">Rincian Per Bulan</p>
+          <div class="grid grid-cols-[44px_1fr_1fr_1fr] gap-1 text-[10px] text-txt3 pb-1 border-b border-slate-100">
+            <span>Bulan</span><span class="text-right">Masuk</span><span class="text-right">Keluar</span><span class="text-right">Laba</span>
+          </div>
+          <div v-for="row in perMonth" :key="row.ym" class="grid grid-cols-[44px_1fr_1fr_1fr] gap-1 text-[11px] py-1.5 border-b border-slate-50 last:border-0">
+            <span class="font-bold text-txt2">{{ row.label }}</span>
+            <span class="text-right text-success">{{ rp(row.masuk) }}</span>
+            <span class="text-right text-accent">{{ rp(row.keluar) }}</span>
+            <span class="text-right font-bold" :class="row.laba >= 0 ? 'text-brand' : 'text-danger'">{{ rp(row.laba) }}</span>
+          </div>
+          <div v-if="perMonth.length === 0" class="text-center text-[12px] text-txt3 py-6">Belum ada transaksi tahun ini</div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ============ RIWAYAT PENYEWA ============ -->
+    <div class="px-4 mt-4 pb-8">
+      <p class="text-[14px] font-bold mb-0.5">Riwayat Penyewa</p>
+      <p class="text-[10px] text-txt3 mb-2">{{ riwayat.length }} penyewa &middot; aktif &amp; sudah keluar</p>
+      <div v-if="riwayat.length === 0" class="text-center text-[12px] text-txt3 py-8">Belum ada riwayat</div>
+      <div v-for="r in riwayat" :key="r.ID" class="card row-card p-3.5 mb-2.5">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-full grid place-items-center font-extrabold text-[14px] shrink-0"
+            style="background: linear-gradient(135deg, rgba(0, 132, 68, .14), rgba(40, 167, 69, .2)); color: var(--c-primary)">{{ r.Nama.charAt(0) }}</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-[14px] font-extrabold truncate">{{ r.Nama }}</p>
+              <span class="text-[10px] font-bold rounded-full px-2 py-0.5 shrink-0"
+                :class="r.status === 'Aktif' ? 'bg-emerald-50 text-success' : 'bg-slate-100 text-txt2'">{{ r.status }}</span>
+            </div>
+            <div class="flex items-center justify-between gap-2 mt-0.5">
+              <p class="text-[12px] text-txt2 truncate">{{ maskHp(r.NoHP) }} &middot; Kmr {{ r.Kamar }}</p>
+              <p class="text-[12px] font-extrabold text-brand shrink-0">{{ r.durasi }}</p>
+            </div>
+            <p class="text-[10px] text-txt3 mt-0.5">Sewa: {{ tgl(r.Masuk) }} &rarr; {{ r.Keluar ? tgl(r.Keluar) : 'masih aktif' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`
+};
+
+const TunggakanView = {
+  computed: {
+    list() { return store.penghuni.filter(p => p.StatusBayar === 'Belum Bayar' && !p.TglKeluar); }
+  },
+  methods: {
+    async tandaiBayar(p) {
+      const r = await api('updatePenghuni', { ID: p.ID, StatusBayar: 'Sudah Bayar' });
+      if (r.success) { await refresh(); toast(p.Nama + ' ditandai sudah bayar'); }
+      else toast(r.message, 'error');
+    }
+  },
+  template: `
+  <div>
+    <page-header title="Tunggakan"></page-header>
+    <div class="px-4 mt-4 pb-8">
+      <p class="text-[12px] text-txt2 mb-3">{{ list.length }} penghuni belum melakukan pembayaran</p>
+      <div v-if="list.length === 0" class="text-center text-[12px] text-txt3 py-10">🎉 Tidak ada tunggakan</div>
+      <div v-for="p in list" :key="p.ID" class="card row-card p-4 mb-3">
+        <div class="flex items-center gap-3">
+          <div class="flex-1 min-w-0">
+            <p class="text-[14px] font-bold truncate">{{ p.Nama }}</p>
+            <p class="text-[12px] text-txt2">Kmr {{ kamarNo(p.KamarID) }} &middot; {{ p.Tipe }}</p>
+            <p class="text-[10px] text-danger font-bold mt-0.5">Jatuh tempo: {{ tgl(jatuhTempo(p)) }}</p>
+          </div>
+          <a :href="waLink(p.NoHP)" target="_blank" rel="noopener"
+            class="btn btn-success px-3.5 py-2.5 text-[12px] shrink-0">Tagih WA</a>
+        </div>
+        <button v-if="auth.admin" @click="tandaiBayar(p)"
+          class="w-full mt-3 bg-bgapp text-brand text-[12px] font-bold rounded-xl py-2.5 active:scale-95 transition">✓ Tandai Sudah Bayar (admin)</button>
+      </div>
+    </div>
+  </div>`
+};
+
+/* ========================= ROUTER HASH & ROOT APP ========================= */
+const LoginView = {
+  data() { return { pw: '', busy: false }; },
+  methods: {
+    async masuk() {
+      if (!this.pw) { toast('Masukkan password admin', 'error'); return; }
+      this.busy = true;
+      await delay(200);
+      this.busy = false;
+      if (login(this.pw)) {
+        toast('Login berhasil — selamat datang, Admin');
+        const target = intendedRoute || '#/';
+        intendedRoute = '';
+        this.$go(target);
+      } else {
+        toast('Password salah', 'error');
+        this.pw = '';
+      }
+    }
+  },
+  template: `
+  <div>
+    <header class="app-header text-white px-4 pt-8 pb-16 rounded-b-[28px] text-center">
+      <div class="relative z-10 w-14 h-14 rounded-full bg-white/20 ring-2 ring-white/25 grid place-items-center text-2xl mx-auto">🔐</div>
+      <h1 class="relative z-10 text-[20px] font-extrabold tracking-tight mt-3">Login Admin</h1>
+      <p class="relative z-10 text-[12px] text-white/75">KOST CHAMEL GOWA</p>
+    </header>
+    <form @submit.prevent="masuk" class="px-4 -mt-8">
+      <div class="card p-5">
+        <label class="label">Password Admin</label>
+        <input v-model="pw" type="password" class="field" placeholder="••••••••" autocomplete="current-password">
+        <p class="text-[10px] text-txt3 mt-1">Akses mengedit kamar, penghuni, tunggakan &amp; membuka laporan.</p>
+        <button type="submit" :disabled="busy"
+          class="btn btn-brand w-full mt-4 py-4 text-[16px]">{{ busy ? 'Memeriksa…' : 'Masuk' }}</button>
+        <button type="button" @click="$go('#/')" class="w-full mt-2 text-[14px] font-bold text-txt2 py-2">Kembali ke Beranda</button>
+      </div>
+    </form>
+  </div>`
+};
+
+const routes = {
+  '#/': BerandaView,
+  '#/login': LoginView,
+  '#/kamar': KamarView,
+  '#/penghuni': PenghuniView,
+  '#/penghuni/baru': PenghuniBaruView,
+  '#/pemasukan': PemasukanView,
+  '#/pengeluaran': PengeluaranView,
+  '#/laporan': LaporanView,
+  '#/tunggakan': TunggakanView
+};
+
+const app = createApp({
+  data() {
+    return { route: location.hash || '#/' };
+  },
+  computed: {
+    view() { return routes[this.route] || BerandaView; },
+    navs() {
+      return [
+        { label: 'Beranda', icon: '🏠', to: '#/' },
+        { label: 'Kamar', icon: '🚪', to: '#/kamar' },
+        { label: 'Penghuni', icon: '👥', to: '#/penghuni' },
+        { label: 'Laporan', icon: '📊', to: '#/laporan' }
+      ];
+    }
+  },
+  methods: {
+    isActive(to) { return this.route === to || (to !== '#/' && this.route.startsWith(to)); },
+    toastClass() { return ui.toast.type === 'error' ? 'bg-danger' : 'bg-brand'; },
+    guard() {
+      if (needsAdmin(this.route) && !auth.admin) {
+        intendedRoute = this.route;
+        toast('Login admin diperlukan', 'error');
+        location.hash = '#/login';
+      }
+    }
+  },
+  mounted() {
+    window.addEventListener('hashchange', () => {
+      this.route = location.hash || '#/';
+      window.scrollTo(0, 0);
+      this.guard();
+    });
+    refresh();
+    this.guard();
+  },
+  template: `
+  <div class="min-h-screen bg-bgapp max-w-md mx-auto pb-28">
+    <transition name="page" mode="out-in">
+      <component :is="view" :key="route"></component>
+    </transition>
+
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 px-4 pb-3">
+      <div class="bg-surface rounded-[20px] border border-black/5 px-2 py-2 flex justify-around"
+        style="box-shadow: 0 14px 34px -14px rgba(0, 0, 0, .3)">
+        <button v-for="n in navs" :key="n.to" @click="$go(n.to)"
+          class="flex flex-col items-center gap-0.5 rounded-[16px] px-4 py-1.5 transition active:scale-95"
+          :class="isActive(n.to) ? 'bg-navactive/12' : ''">
+          <span class="text-lg leading-none transition" :class="isActive(n.to) ? 'text-navactive' : 'text-txt3'">{{ n.icon }}</span>
+          <span class="text-[10px] leading-none pb-0.5" :class="isActive(n.to) ? 'text-navactive font-extrabold' : 'text-txt3 font-medium'">{{ n.label }}</span>
+        </button>
+      </div>
+    </nav>
+
+    <transition name="fade">
+      <div v-if="ui.toast.msg" class="fixed z-50 bottom-28 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-white text-[14px] font-bold flex items-center gap-2 max-w-[85%]"
+        :class="toastClass()" style="box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .35)">
+        <span class="shrink-0" v-if="ui.toast.type !== 'error'">✓</span><span class="shrink-0" v-else>✕</span>
+        <span>{{ ui.toast.msg }}</span>
+      </div>
+    </transition>
+  </div>`
+});
+
+app.config.globalProperties.$go = h => { location.hash = h; };
+app.config.globalProperties.rp = rp;
+app.config.globalProperties.tgl = tgl;
+app.config.globalProperties.maskHp = maskHp;
+app.config.globalProperties.waLink = waLink;
+app.config.globalProperties.jatuhTempo = jatuhTempo;
+app.config.globalProperties.durasiSewa = durasiSewa;
+app.config.globalProperties.ymLabel = ymLabel;
+app.config.globalProperties.kamarNo = kamarNo;
+app.config.globalProperties.store = store;
+app.config.globalProperties.ui = ui;
+app.config.globalProperties.auth = auth;
+app.component('page-header', PageHeader);
+app.mount('#app');
+</script>
+</body>
+</html>
