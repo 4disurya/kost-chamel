@@ -363,6 +363,26 @@ function toast(msg, type) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { ui.toast.msg = ''; }, 2600);
 }
+/* Snapshot localStorage (stale-while-revalidate): tampilkan data terakhir
+   seketika saat aplikasi dibuka, lalu refresh jaringan menimpanya. */
+const SNAP_KEY = 'kostchamel_snap';
+function muatSnap_() {
+  try {
+    const raw = localStorage.getItem(SNAP_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!s || !Array.isArray(s.kamar)) return false;
+    store.kamar = s.kamar;
+    store.penghuni = Array.isArray(s.penghuni) ? s.penghuni : [];
+    store.transaksi = Array.isArray(s.transaksi) ? s.transaksi : [];
+    return true;
+  } catch (e) { return false; }
+}
+function simpanSnap_() {
+  try {
+    localStorage.setItem(SNAP_KEY, JSON.stringify({ kamar: store.kamar, penghuni: store.penghuni, transaksi: store.transaksi, t: Date.now() }));
+  } catch (e) {}
+}
 async function refresh() {
   const isi = () => {
     if (USE_MOCK && !store.kamar.length && !store.penghuni.length && !store.transaksi.length) {
@@ -386,6 +406,7 @@ async function refresh() {
         store.transaksi = ulang.data.transaksi || [];
       }
     }
+    simpanSnap_();
     return;
   }
   // fallback: backend lama tanpa loadSemua — 3 aksi baca terpisah
@@ -399,6 +420,7 @@ async function refresh() {
     if (again[1].success) store.penghuni = again[1].data || [];
     if (again[2].success) store.transaksi = again[2].data || [];
   }
+  if (k.success || p.success || t.success) simpanSnap_();
 }
 /* Jaga-jaga: ping ringan tiap 5 menit selama tab terbuka supaya eksekusi GAS
    selalu hangat (menghindari cold start 2–5 dtk saat data diminta). */
@@ -1346,6 +1368,7 @@ const app = createApp({
       this.guard();
     });
     warmPing();
+    muatSnap_();
     refresh();
     this.guard();
   },
