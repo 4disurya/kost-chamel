@@ -9,6 +9,8 @@
 <title>KOST CHAMEL GOWA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -347,8 +349,8 @@ async function api(action, payload) {
     try {
       return await req();
     } catch (e) {
-      if (attempt === 0) await new Promise(r => setTimeout(r, 900));
-      else if (attempt === 1) await new Promise(r => setTimeout(r, 2200));
+      if (attempt === 0) await new Promise(r => setTimeout(r, 500));
+      else if (attempt === 1) await new Promise(r => setTimeout(r, 1200));
     }
   }
   return fail('Gagal terhubung ke server');
@@ -503,7 +505,7 @@ const BerandaView = {
         <div class="w-11 h-11 rounded-full bg-white/20 ring-2 ring-white/25 grid place-items-center text-xl">🏠</div>
         <div class="flex-1 min-w-0">
           <p class="text-[15px] font-extrabold tracking-tight leading-tight">KOST CHAMEL GOWA</p>
-          <p class="text-[12px] text-white/75 truncate">Penjaga: Ahmad &middot; penjaga@kostchamel.id</p>
+          <p class="text-[12px] text-white/75 truncate">Jl. Abd. Muthalib Dg. Narang, Kab. Gowa</p>
         </div>
         <button v-if="auth.admin" @click="logoutNow" class="micro relative z-10 bg-white/25 rounded-full px-3 py-2 active:scale-95 transition">ADMIN · Keluar</button>
         <button v-else @click="$go('#/login')" class="micro relative z-10 bg-white/15 rounded-full px-3 py-2 active:scale-95 transition">Login Admin</button>

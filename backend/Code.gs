@@ -101,7 +101,7 @@ function baca_(nama) {
   return hasil;
 }
 /* ---- Cache baca 60 dtk (di-invalidate oleh SEMUA jalur mutasi) ---- */
-var CACHE_TTL_ = 60;
+var CACHE_TTL_ = 300;
 var CACHE_KEYS_ = ['BACA_' + TAB.kamar, 'BACA_' + TAB.penghuni, 'BACA_' + TAB.transaksi];
 function cache_() {
   try { return CacheService.getScriptCache(); } catch (e) { return null; }
