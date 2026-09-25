@@ -37,7 +37,7 @@ var HEADERS = {
   Transaksi: ['ID', 'Tipe', 'Nama', 'Jumlah', 'Tgl', 'Ket']
 };
 var ADMIN_ACTIONS = ['addKamar', 'updateKamar', 'deleteKamar', 'addPenghuni', 'updatePenghuni', 'setup', 'seedContoh'];
-var READ_ACTIONS = ['ping', 'listKamar', 'listPenghuni', 'listTransaksi'];
+var READ_ACTIONS = ['ping', 'listKamar', 'listPenghuni', 'listTransaksi', 'loadSemua'];
 
 /* ========================= ENVELOPE & AUTH ========================= */
 function ok(data) { return { success: true, data: data }; }
@@ -99,6 +99,30 @@ function baca_(nama) {
     hasil.push(o);
   }
   return hasil;
+}
+/* ---- Cache baca 60 dtk (di-invalidate oleh SEMUA jalur mutasi) ---- */
+var CACHE_TTL_ = 60;
+var CACHE_KEYS_ = ['BACA_' + TAB.kamar, 'BACA_' + TAB.penghuni, 'BACA_' + TAB.transaksi];
+function cache_() {
+  try { return CacheService.getScriptCache(); } catch (e) { return null; }
+}
+function bacaCached_(nama) {
+  var key = 'BACA_' + nama;
+  var c = cache_();
+  if (c) {
+    try { var hit = c.get(key); if (hit) return JSON.parse(hit); } catch (e2) {}
+  }
+  var rows = baca_(nama);
+  if (c) {
+    try { c.put(key, JSON.stringify(rows), CACHE_TTL_); } catch (e3) {}
+  }
+  return rows;
+}
+function batalCache_() {
+  var c = cache_();
+  if (c) {
+    try { c.removeAll(CACHE_KEYS_); } catch (e) {}
+  }
 }
 function cariBaris_(sh, id) {
   var lastRow = sh.getLastRow();
@@ -226,7 +250,7 @@ function handle_(action, p) {
       return ok({ app: 'KOST CHAMEL GOWA', status: 'online' });
 
     case 'listKamar':
-      return ok(baca_(TAB.kamar));
+      return ok(bacaCached_(TAB.kamar));
 
     case 'addKamar': {
       var no = String(p.No || '').trim();
@@ -273,7 +297,7 @@ function handle_(action, p) {
     }
 
     case 'listPenghuni':
-      return ok(baca_(TAB.penghuni));
+      return ok(bacaCached_(TAB.penghuni));
 
     case 'addPenghuni': {
       var nama = String(p.Nama || '').trim();
@@ -310,7 +334,14 @@ function handle_(action, p) {
     }
 
     case 'listTransaksi':
-      return ok(baca_(TAB.transaksi));
+      return ok(bacaCached_(TAB.transaksi));
+
+    case 'loadSemua':
+      return ok({
+        kamar: bacaCached_(TAB.kamar),
+        penghuni: bacaCached_(TAB.penghuni),
+        transaksi: bacaCached_(TAB.transaksi)
+      });
 
     case 'addTransaksi': {
       if (!(Number(p.Jumlah) > 0)) return fail('Jumlah harus lebih dari Rp 0');
@@ -345,8 +376,8 @@ function handle_(action, p) {
 
 /* ========================= ENTRY POINT GAS ========================= */
 // wrapper publik untuk dropdown editor Apps Script / clasp run:
-function setup() { return setup_(); }
-function seedContoh() { return seedContoh_(); }
+function setup() { var r = setup_(); batalCache_(); return r; }
+function seedContoh() { var r = seedContoh_(); batalCache_(); return r; }
 
 function doGet(e) {
   return out(ok({ app: 'KOST CHAMEL GOWA', status: 'online' }));
@@ -367,7 +398,7 @@ function doPost(e) {
     var lock = LockService.getScriptLock();
     try { lock.waitLock(15000); } catch (lockErr) { return out(fail('Server sedang sibuk, coba lagi')); }
     try { return out(handle_(action, body.payload)); }
-    finally { lock.releaseLock(); }
+    finally { batalCache_(); lock.releaseLock(); }
   } catch (err) {
     return out(fail('Kesalahan server: ' + (err && err.message || err)));
   }

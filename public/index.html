@@ -253,6 +253,7 @@ async function mockApi(action, payload) {
   await delay(150);
   payload = payload || {};
   switch (action) {
+    case 'loadSemua': return ok({ kamar: db.kamar, penghuni: db.penghuni, transaksi: db.transaksi });
     case 'listKamar': return ok(db.kamar);
     case 'addKamar': {
       const no = String(payload.No || '').trim();
@@ -325,15 +326,22 @@ async function api(action, payload) {
   if (!url) return fail('Endpoint GAS belum diisi (isi GAS_URL.' + GAS_ENV + ')');
   const body = JSON.stringify({ action: action, payload: payload || {}, adminKey: auth.admin ? ADMIN_PASSWORD : '' });
   const req = async () => {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: body,
-      redirect: 'follow'
-    });
-    const data = await res.json();
-    if (!data || (data.success !== true && data.success !== false)) throw new Error('respon tidak valid');
-    return data;
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 10000);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: body,
+        redirect: 'follow',
+        signal: ac.signal
+      });
+      const data = await res.json();
+      if (!data || (data.success !== true && data.success !== false)) throw new Error('respon tidak valid');
+      return data;
+    } finally {
+      clearTimeout(timer);
+    }
   };
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -356,19 +364,50 @@ function toast(msg, type) {
   toastTimer = setTimeout(() => { ui.toast.msg = ''; }, 2600);
 }
 async function refresh() {
+  const isi = () => {
+    if (USE_MOCK && !store.kamar.length && !store.penghuni.length && !store.transaksi.length) {
+      db = seedDb();
+      saveDb();
+      return true;
+    }
+    return false;
+  };
+  const satu = await api('loadSemua');
+  const viaSatu = satu.success && satu.data && Array.isArray(satu.data.kamar);
+  if (viaSatu) {
+    store.kamar = satu.data.kamar || [];
+    store.penghuni = satu.data.penghuni || [];
+    store.transaksi = satu.data.transaksi || [];
+    if (isi()) {
+      const ulang = await api('loadSemua');
+      if (ulang.success && ulang.data) {
+        store.kamar = ulang.data.kamar || [];
+        store.penghuni = ulang.data.penghuni || [];
+        store.transaksi = ulang.data.transaksi || [];
+      }
+    }
+    return;
+  }
+  // fallback: backend lama tanpa loadSemua — 3 aksi baca terpisah
   const [k, p, t] = await Promise.all([api('listKamar'), api('listPenghuni'), api('listTransaksi')]);
   if (k.success) store.kamar = k.data || [];
   if (p.success) store.penghuni = p.data || [];
   if (t.success) store.transaksi = t.data || [];
-  // self-haling: bila MOCK storage korup/kosong total, muat ulang data contoh (non-MOCK: skip)
-  if (USE_MOCK && !store.kamar.length && !store.penghuni.length && !store.transaksi.length) {
-    db = seedDb();
-    saveDb();
+  if (isi()) {
     const again = await Promise.all([api('listKamar'), api('listPenghuni'), api('listTransaksi')]);
     if (again[0].success) store.kamar = again[0].data || [];
     if (again[1].success) store.penghuni = again[1].data || [];
     if (again[2].success) store.transaksi = again[2].data || [];
   }
+}
+/* Jaga-jaga: ping ringan tiap 5 menit selama tab terbuka supaya eksekusi GAS
+   selalu hangat (menghindari cold start 2–5 dtk saat data diminta). */
+let warmTimer = null;
+function warmPing() {
+  if (USE_MOCK) return;
+  if (!document.hidden) api('ping');
+  clearTimeout(warmTimer);
+  warmTimer = setTimeout(warmPing, 5 * 60 * 1000);
 }
 function kamarNo(id) {
   const k = store.kamar.find(k => k.ID === id);
@@ -1306,6 +1345,7 @@ const app = createApp({
       window.scrollTo(0, 0);
       this.guard();
     });
+    warmPing();
     refresh();
     this.guard();
   },
