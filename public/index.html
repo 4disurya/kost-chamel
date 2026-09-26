@@ -127,9 +127,9 @@ const { createApp } = Vue;
 /* ========================= KONFIG & STATUS MOCK ========================= */
 const USE_MOCK = false;         // true = mode demo lokal tanpa backend
 const GAS_ENV = 'dev';          // 'dev' | 'prod' -> endpoint yang dipakai di bawah
-const GAS_URL = {               // hasil `clasp create-deployment` (2 deployment tetap)
-  dev: 'https://script.google.com/macros/s/AKfycbxlaj-2aJJ4rjDdaWw7nOVg28fFTbZeJFE3jFRnAr6TtvpCqZ4PX-8-tm1d9-cApiRA-Q/exec',
-  prod: 'https://script.google.com/macros/s/AKfycbwCo3uXcIOj2Ug4p969luCuIuHK3GgxqM_9YlUhb2pFJTTvaDe0l-lmBcEgb80CjxW96A/exec'
+const GAS_URL = {               // 2 deployment tetap — diperbarui via `clasp update-deployment`
+  dev: 'https://script.google.com/macros/s/AKfycbxgvozgbfQL4qE8485mQ55zJ4Qn5kvIl69kl9LhRZaR2PGpsI5yFhb2FgaXiEBGaGZSoQ/exec',
+  prod: 'https://script.google.com/macros/s/AKfycbyMb605zOjyWiU5xmC4eGxGwVfWRwVxw-zfYOc4biQqFLrPaKdFp9_7A7JApP-k6A3ljA/exec'
 };
 const ADMIN_PASSWORD = 'kost_chamel';
 const ADMIN_ROUTES = ['#/laporan', '#/penghuni/baru']; // wajib login admin
@@ -238,6 +238,7 @@ async function mockApi(action, payload) {
   await delay(150);
   payload = payload || {};
   switch (action) {
+    case 'ping': return ok({ app: 'KOST CHAMEL GOWA', status: 'online' });
     case 'loadSemua': return ok({ kamar: db.kamar, penghuni: db.penghuni, transaksi: db.transaksi });
     case 'listKamar': return ok(db.kamar);
     case 'addKamar': {
