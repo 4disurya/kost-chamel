@@ -326,10 +326,19 @@ async function api(action, payload) {
   if (USE_MOCK) return mockApi(action, payload);
   const url = GAS_URL[GAS_ENV] || '';
   if (!url) return fail('Endpoint GAS belum diisi (isi GAS_URL.' + GAS_ENV + ')');
-  const body = JSON.stringify({ action: action, payload: payload || {}, adminKey: auth.admin ? ADMIN_PASSWORD : '' });
+  const READ_AKSI = ['ping', 'listKamar', 'listPenghuni', 'listTransaksi', 'loadSemua'];
+  const isBaca = READ_AKSI.indexOf(action) >= 0;
+  const p = payload || {};
+  let payloadAkhir = p;
+  if (!isBaca && !p.clientRef) {
+    payloadAkhir = Object.assign({}, p, { clientRef: 'R' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) });
+  }
+  const body = JSON.stringify({ action: action, payload: payloadAkhir, adminKey: auth.admin ? ADMIN_PASSWORD : '' });
+  const timeoutMs = isBaca ? 10000 : 30000;
+  const maxCoba = isBaca ? 3 : 1; // aksi tulis TIDAK boleh di-retry (mencegah duplikat baris)
   const req = async () => {
     const ac = new AbortController();
-    const timer = setTimeout(() => ac.abort(), 10000);
+    const timer = setTimeout(() => ac.abort(), timeoutMs);
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -345,15 +354,17 @@ async function api(action, payload) {
       clearTimeout(timer);
     }
   };
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < maxCoba; attempt++) {
     try {
       return await req();
     } catch (e) {
-      if (attempt === 0) await new Promise(r => setTimeout(r, 500));
-      else if (attempt === 1) await new Promise(r => setTimeout(r, 1200));
+      if (attempt + 1 < maxCoba) {
+        await new Promise(r => setTimeout(r, attempt === 0 ? 500 : 1200));
+      }
     }
   }
-  return fail('Gagal terhubung ke server');
+  if (isBaca) return fail('Gagal terhubung ke server');
+  return fail('Koneksi lambat — data belum tentu tersimpan, cek sheet sebelum mengulang');
 }
 
 /* ========================= STORE GLOBAL & UI ========================= */

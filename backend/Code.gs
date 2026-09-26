@@ -38,6 +38,8 @@ var HEADERS = {
 };
 var ADMIN_ACTIONS = ['addKamar', 'updateKamar', 'deleteKamar', 'addPenghuni', 'updatePenghuni', 'setup', 'seedContoh'];
 var READ_ACTIONS = ['ping', 'listKamar', 'listPenghuni', 'listTransaksi', 'loadSemua'];
+// Aksi tulis yang wajib idempoten: pengiriman ulang dengan clientRef sama TIDAK membuat baris baru.
+var CREATE_ACTIONS = ['addKamar', 'addPenghuni', 'addTransaksi'];
 
 /* ========================= ENVELOPE & AUTH ========================= */
 function ok(data) { return { success: true, data: data }; }
@@ -48,6 +50,51 @@ function out(payload) {
 function kunciAdminOk_(kunci) {
   var kunciAktif = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY');
   return String(kunci || '') === (kunciAktif || 'kost_chamel');
+}
+
+/* ========================= IDEMPOTENSI TULIS (clientRef) ========================= */
+// clientRef datang dari FE per pengiriman; ref yang sama dalam 24 jam terakhir
+// tidak menulis ulang — hasil pertama (ID baris) dikembalikan sebagai sukses.
+var REF_PROPS_KEY_ = 'REF_TERAKHIR';
+var REF_MAKS_ = 100;
+var REF_USIA_MS_ = 24 * 3600 * 1000;
+function refDiterima_(ref) {
+  if (!ref) return '';
+  try {
+    var raw = PropertiesService.getScriptProperties().getProperty(REF_PROPS_KEY_);
+    var map = raw ? JSON.parse(raw) : {};
+    var e = map[String(ref)];
+    if (!e || (Date.now() - Number(e.t || 0)) > REF_USIA_MS_) return '';
+    return String(e.id || '');
+  } catch (err) { return ''; }
+}
+function catatRef_(ref, idHasil) {
+  if (!ref) return;
+  try {
+    var sp = PropertiesService.getScriptProperties();
+    var raw = sp.getProperty(REF_PROPS_KEY_);
+    var map = raw ? JSON.parse(raw) : {};
+    var now = Date.now();
+    map[String(ref)] = { id: String(idHasil || ''), t: now };
+    var entri = [];
+    Object.keys(map).forEach(function (k) {
+      var e = map[k];
+      if (e && (now - Number(e.t || 0)) <= REF_USIA_MS_) entri.push({ k: k, id: e.id, t: Number(e.t || 0) });
+    });
+    entri.sort(function (a, b) { return b.t - a.t; });
+    entri = entri.slice(0, REF_MAKS_);
+    var hasilMap = {};
+    entri.forEach(function (en) { hasilMap[en.k] = { id: en.id, t: en.t }; });
+    sp.setProperty(REF_PROPS_KEY_, JSON.stringify(hasilMap));
+  } catch (err) { /* property penuh/gagal catat — idempotensi lemah, tulis tetap jalan */ }
+}
+function dataDariRef_(action, id) {
+  var tab = action === 'addPenghuni' ? TAB.penghuni : (action === 'addTransaksi' ? TAB.transaksi : TAB.kamar);
+  var rows = bacaCached_(tab);
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i].ID) === String(id)) return rows[i];
+  }
+  return null;
 }
 
 /* ========================= SHEET HELPERS ========================= */
@@ -312,7 +359,7 @@ function handle_(action, p) {
       };
       tambahBaris_(TAB.penghuni, penghuni);
       if (penghuni.KamarID) {
-        var k = baca_(TAB.kamar).find(function (kk) { return String(kk.ID) === String(penghuni.KamarID); });
+        var k = bacaCached_(TAB.kamar).find(function (kk) { return String(kk.ID) === String(penghuni.KamarID); });
         if (k) {
           var shK = sheet_(TAB.kamar);
           var barisK = cariBaris_(shK, k.ID);
@@ -353,7 +400,7 @@ function handle_(action, p) {
       };
       tambahBarisTerbaru_(TAB.transaksi, trx);
       if (trx.Tipe === 'Masuk') {
-        var cocok = baca_(TAB.penghuni).find(function (pp) { return pp.Nama === trx.Nama; });
+        var cocok = bacaCached_(TAB.penghuni).find(function (pp) { return pp.Nama === trx.Nama; });
         if (cocok) {
           var shPe = sheet_(TAB.penghuni);
           var barisPe = cariBaris_(shPe, cocok.ID);
@@ -397,7 +444,20 @@ function doPost(e) {
 
     var lock = LockService.getScriptLock();
     try { lock.waitLock(15000); } catch (lockErr) { return out(fail('Server sedang sibuk, coba lagi')); }
-    try { return out(handle_(action, body.payload)); }
+    try {
+      var ref = body.payload && body.payload.clientRef;
+      var perluCekRef = ref && CREATE_ACTIONS.indexOf(action) >= 0;
+      if (perluCekRef) {
+        var idLama = refDiterima_(ref);
+        if (idLama) {
+          var dataLama = dataDariRef_(action, idLama);
+          if (dataLama) return out(ok(dataLama));
+        }
+      }
+      var hasil = handle_(action, body.payload);
+      if (perluCekRef && hasil && hasil.success) catatRef_(ref, hasil.data && hasil.data.ID);
+      return out(hasil);
+    }
     finally { batalCache_(); lock.releaseLock(); }
   } catch (err) {
     return out(fail('Kesalahan server: ' + (err && err.message || err)));
