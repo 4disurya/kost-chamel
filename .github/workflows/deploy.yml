@@ -1,0 +1,53 @@
+name: Deploy FE ke GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'public/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Strip kunci admin (artefak view-only)
+        shell: pwsh
+        run: |
+          $path = 'public/index.html'
+          $src = Get-Content -Path $path -Raw -Encoding utf8
+          $old = "const ADMIN_PASSWORD = 'kost_chamel'"
+          $new = "const ADMIN_PASSWORD = 'TANPA_ADMIN_DI_DEPLOY'"
+          if (-not $src.Contains($old)) { throw "Pola ADMIN_PASSWORD tidak ditemukan di $path — format sumber berubah, perbaiki workflow ini." }
+          $out = $src.Replace($old, $new)
+          if ($out.Contains($old)) { throw "Gagal mengganti ADMIN_PASSWORD (pola lama masih ada)." }
+          if ($out.Contains('kost_chamel')) { throw "Masih ada teks 'kost_chamel' di artefak." }
+          Set-Content -Path $path -Value $out -NoNewline -Encoding utf8
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artefak
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy ke GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

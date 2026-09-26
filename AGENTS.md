@@ -3,11 +3,12 @@
 ## Status Proyek
 Repo: SPA **`public/index.html`** (1.455 baris, ±68 KB, Vue 3) + backend **`backend/Code.gs`** (497 baris, Google Apps Script, **ditulis ulang dari nol** — kontrak identik mock FE; versi lama masih di `origin/main`) + `backend/.clasp.json` + `backend/appsscript.json`. Belum ada `package.json` — **app tidak pakai npm**.
 **Project GAS dibuat ulang 26 Sep 2026** — scriptId & ID deployment lama (di `origin/main`) sudah mati/404; ID yang berlaku ada di header `Code.gs` (sinkron dgn `GAS_URL` FE).
-Masih dihapus dari worktree: `firebase.json`, `.firebaserc`, `.gitignore`, `.github/workflows/deploy.yml`.
+Masih dihapus dari worktree: `firebase.json`, `.firebaserc`, `.gitignore`. Sebaliknya `.github/workflows/deploy.yml` **ADA** (deploy GitHub Pages — lihat Commands).
 
 ## Commands (verifikasi, jangan tebak)
 - **Tidak ada** `npm run dev/test/lint/typecheck`, build step, atau codegen. Jangan buat/bilang perintah itu.
-- **Preview FE:** buka `public/index.html` langsung di browser; set `USE_MOCK = true` (`index.html:128`) untuk demo tanpa backend. `firebase serve` **tidak bisa** (tidak ada `firebase.json`); tidak ada alur deploy hosting di repo (CI dihapus) — jangan mengarang perintah deploy.
+- **Preview FE:** buka `public/index.html` langsung di browser; set `USE_MOCK = true` (`index.html:128`) untuk demo tanpa backend. `firebase serve` **tidak bisa** (tidak ada `firebase.json`).
+- **Deploy FE = GitHub Pages** (26 Sep 2026, repo sudah **public** — syarat Pages di akun Free): push ke `main` (path `public/**` atau `.github/workflows/deploy.yml`) → Actions auto-publish → **https://4disurya.github.io/kost-chamel/**. Artefak online **view-only**: workflow mengganti `ADMIN_PASSWORD` jadi `TANPA_ADMIN_DI_DEPLOY` **hanya di salinan runner** (source repo tetap kunci asli) → login admin online gagal & aksi admin ditolak server; admin penuh hanya dari file lokal. Cek status: `gh run list`, `gh api repos/4disurya/kost-chamel/pages`.
 - **Backend — selalu dari folder `backend/`** (`.clasp.json` di sana, `rootDir: ""`; clasp 3.4.1 terpasang):
   1. edit lokal → `clasp push` (bila output `Skipping push.` → pakai `clasp push --force`)
   2. `clasp update-deployment --deploymentId <DEV_ID>` → uji endpoint Dev (FE `GAS_ENV = 'dev'`)
@@ -24,7 +25,7 @@ Masih dihapus dari worktree: `firebase.json`, `.firebaserc`, `.gitignore`, `.git
 ## 2. Frontend (SPA Single File Ketat)
 - Seluruh markup, CSS, komponen Vue, routing, dan API call wajib utuh di **satu file `public/index.html`**. Jangan pecah kecuali instruksi langsung user.
 - Routing **hash router** murni (`#/path`); peta rute: objek `routes` di `index.html:1361` (komponen = JS Object, render via template literal `` template: `...` ``).
-- Blok config global `index.html:127-135`: `USE_MOCK` (`:128`), `GAS_ENV` `'dev'|'prod'` (`:129`), `GAS_URL` dev/prod (`:131-132`), `ADMIN_PASSWORD` (`:134`), `ADMIN_ROUTES` (`:135`). `GAS_ENV` saat ini **`'prod'`** (DEV & PROD identik — same script/sheet — keduanya tervalidasi live).
+- Blok config global `index.html:127-135`: `USE_MOCK` (`:128`), `GAS_ENV` `'dev'|'prod'` (`:129`), `GAS_URL` dev/prod (`:131-132`), `ADMIN_PASSWORD` (`:134`), `ADMIN_ROUTES` (`:135`). `GAS_ENV` saat ini **`'prod'`** (DEV & PROD identik — same script/sheet — keduanya tervalidasi live). Catatan: di artefak GitHub Pages nilai `ADMIN_PASSWORD` diganti `TANPA_ADMIN_DI_DEPLOY` oleh workflow (online view-only); source repo tetap kunci asli.
 - **Tanpa data sementara:** semua data full load dari backend (`refresh()` → `loadSemua`), **dilarang menyimpan data DB di localStorage/snapshot** (sisa kunci lama dibersihkan di `index.html:1406`). Auto-refresh tiap 45 dtk + saat tab aktif lagi (`index.html:441-442`).
 
 ## 3. API & Mock (sumber kontrak = kode, bukan dokumen)
