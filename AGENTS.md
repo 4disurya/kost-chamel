@@ -1,7 +1,7 @@
 # AGENTS.md — KOST CHAMEL GOWA
 
 ## Status Proyek
-Repo: SPA **`public/index.html`** (1.431 baris, ±68 KB, Vue 3) + backend **`backend/Code.gs`** (492 baris, Google Apps Script, **ditulis ulang dari nol** — kontrak identik mock FE; versi lama masih di `origin/main`) + `backend/.clasp.json` + `backend/appsscript.json`. Belum ada `package.json` — **app tidak pakai npm**.
+Repo: SPA **`public/index.html`** (1.455 baris, ±68 KB, Vue 3) + backend **`backend/Code.gs`** (497 baris, Google Apps Script, **ditulis ulang dari nol** — kontrak identik mock FE; versi lama masih di `origin/main`) + `backend/.clasp.json` + `backend/appsscript.json`. Belum ada `package.json` — **app tidak pakai npm**.
 **Project GAS dibuat ulang 26 Sep 2026** — scriptId & ID deployment lama (di `origin/main`) sudah mati/404; ID yang berlaku ada di header `Code.gs` (sinkron dgn `GAS_URL` FE).
 Masih dihapus dari worktree: `firebase.json`, `.firebaserc`, `.gitignore`, `.github/workflows/deploy.yml`.
 
@@ -23,16 +23,16 @@ Masih dihapus dari worktree: `firebase.json`, `.firebaserc`, `.gitignore`, `.git
 
 ## 2. Frontend (SPA Single File Ketat)
 - Seluruh markup, CSS, komponen Vue, routing, dan API call wajib utuh di **satu file `public/index.html`**. Jangan pecah kecuali instruksi langsung user.
-- Routing **hash router** murni (`#/path`); peta rute: objek `routes` di `index.html:1337` (komponen = JS Object, render via template literal `` template: `...` ``).
+- Routing **hash router** murni (`#/path`); peta rute: objek `routes` di `index.html:1361` (komponen = JS Object, render via template literal `` template: `...` ``).
 - Blok config global `index.html:127-135`: `USE_MOCK` (`:128`), `GAS_ENV` `'dev'|'prod'` (`:129`), `GAS_URL` dev/prod (`:131-132`), `ADMIN_PASSWORD` (`:134`), `ADMIN_ROUTES` (`:135`). `GAS_ENV` saat ini **`'dev'`** — pastikan sesuai sebelum push ke hosting produksi.
-- **Tanpa data sementara:** semua data full load dari backend (`refresh()` → `loadSemua`), **dilarang menyimpan data DB di localStorage/snapshot** (sisa kunci lama dibersihkan di `index.html:1382`). Auto-refresh tiap 45 dtk + saat tab aktif lagi (`index.html:435-436`).
+- **Tanpa data sementara:** semua data full load dari backend (`refresh()` → `loadSemua`), **dilarang menyimpan data DB di localStorage/snapshot** (sisa kunci lama dibersihkan di `index.html:1406`). Auto-refresh tiap 45 dtk + saat tab aktif lagi (`index.html:441-442`).
 
 ## 3. API & Mock (sumber kontrak = kode, bukan dokumen)
-- `api()` di `index.html:309-352`:
+- `api()` di `index.html:315-358`:
   - Native `fetch()` + `redirect: 'follow'` (endpoint GAS selalu 302).
-  - POST header `Content-Type': 'text/plain;charset=utf-8'` + `JSON.stringify` untuk cegah preflight CORS yang ditolak GAS; **`adminKey` dikirim di dalam body, bukan header** (`:320`).
-  - Timeout: baca 10 dtk, tulis 30 dtk (`:321`). **Baca di-retry maks 3× (backoff 500/1200 ms); tulis TIDAK PERNAH di-retry** (`maxCoba = 1`, `:322` — retry = baris duplikat, commit `155be10`). Duplikat dicegah lewat `clientRef` idempoten yang dibuat otomatis (`:317-318`).
-  - Daftar aksi baca `READ_AKSI` (`:313`) menentukan klasifikasi timeout/retry — jangan diubah sepihak.
+  - POST header `Content-Type': 'text/plain;charset=utf-8'` + `JSON.stringify` untuk cegah preflight CORS yang ditolak GAS; **`adminKey` dikirim di dalam body, bukan header** (`:326`).
+  - Timeout: baca 10 dtk, tulis 30 dtk (`:327`). **Baca di-retry maks 3× (backoff 500/1200 ms); tulis TIDAK PERNAH di-retry** (`maxCoba = 1`, `:328` — retry = baris duplikat, commit `155be10`). Duplikat dicegah lewat `clientRef` idempoten yang dibuat otomatis (`:323-324`).
+  - Daftar aksi baca `READ_AKSI` (`:319`) menentukan klasifikasi timeout/retry — jangan diubah sepihak.
 - **Mock:** `USE_MOCK = true` melewati fetch; `mockApi()` (`:237`) wajib 100% identik format **dan** pesan validasi respon backend sungguhan; mock in-memory (seed ulang tiap reload, tanpa localStorage).
 - **Sinkronisasi wajib bila menambah aksi** (4 tempat): case di `mockApi()` FE ↔ `case` di `Code.gs` `handle_()` ↔ `READ_ACTIONS`/`ADMIN_ACTIONS`/`CREATE_ACTIONS` (`Code.gs` bagian KONFIG) ↔ `READ_AKSI` FE. Aksi tulis `CREATE_ACTIONS` wajib idempoten (`clientRef` 24 jam).
 - Backend **tanpa cache** (tanpa CacheService) — baca selalu fresh dari Sheets; semua respon keluar via `out()` (ContentService JSON).

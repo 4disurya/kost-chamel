@@ -32,7 +32,7 @@
  *   GET       : ping kesehatan endpoint.
  *   adminKey DI DALAM body, bukan header (header memicu preflight CORS yang ditolak GAS).
  *   Aksi admin (wajib adminKey benar): addKamar, updateKamar, deleteKamar,
- *        addPenghuni, updatePenghuni, setup, seedContoh.
+ *        addPenghuni, updatePenghuni, deleteTransaksi, setup, seedContoh.
  *   Aksi baca (tanpa lock): ping, listKamar, listPenghuni, listTransaksi, loadSemua.
  *   Aksi tulis terbuka: addTransaksi.
  *   CREATE_ACTIONS wajib idempoten: clientRef sama dalam 24 jam tidak menulis baris baru.
@@ -48,7 +48,7 @@ const HEADERS = {
   Penghuni: ['ID', 'Nama', 'NoHP', 'Tipe', 'TglMasuk', 'KamarID', 'StatusBayar', 'TglKeluar', 'Notes'],
   Transaksi: ['ID', 'Tipe', 'Nama', 'Jumlah', 'Tgl', 'Ket']
 };
-const ADMIN_ACTIONS = ['addKamar', 'updateKamar', 'deleteKamar', 'addPenghuni', 'updatePenghuni', 'setup', 'seedContoh'];
+const ADMIN_ACTIONS = ['addKamar', 'updateKamar', 'deleteKamar', 'addPenghuni', 'updatePenghuni', 'deleteTransaksi', 'setup', 'seedContoh'];
 const READ_ACTIONS = ['ping', 'listKamar', 'listPenghuni', 'listTransaksi', 'loadSemua'];
 const CREATE_ACTIONS = ['addKamar', 'addPenghuni', 'addTransaksi'];
 const ADMIN_KEY_DEFAULT = 'kost_chamel'; // bisa dioverride lewat Script Property ADMIN_KEY
@@ -429,6 +429,11 @@ function handle_(action, p) {
         if (cocok) perbaruiBaris_(TAB.penghuni, cocok.ID, { StatusBayar: 'Sudah Bayar' });
       }
       return ok(trx);
+    }
+
+    case 'deleteTransaksi': {
+      const removed = hapusBaris_(TAB.transaksi, p.ID);
+      return removed ? ok(removed) : fail('Transaksi tidak ditemukan');
     }
 
     case 'setup':
