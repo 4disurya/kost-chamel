@@ -1,12 +1,17 @@
 # AGENTS.md — KOST CHAMEL GOWA
 
 ## Status Proyek
-Greenfield: repo baru berisi `prd.md` (kebutuhan produk + skema data), `design.md` (design token), `image1.jpg` (referensi visual), dan file ini. Belum ada kode, git, CI, atau manifest — semua struktur di bawah adalah **target** yang wajib dibuat dari nol.
+Produk jalan: `public/index.html` (SPA ±71 KB) + `backend/Code.gs` (465 baris GAS), branch `main`, CI/CD Firebase Hosting aktif. Belum ada `package.json` — **app tidak pakai npm**.
 
-## Prerequisites & Local Setup
-1. **Google Apps Script (CLASP)** — `clasp login`, lalu jika belum ada: `clasp create --type webapp --title "KOST CHAMEL GOWA" --rootDir ./backend`
-2. **Firebase CLI** — `firebase login`, lalu `firebase init hosting` (direktori `public`).
-3. **Preview lokal:** `firebase serve` atau `firebase emulators:start`. **Tidak ada** `npm run dev`, Vite, atau dev server Node — jangan menebak perintah itu.
+## Commands (verifikasi, jangan tebak)
+- **Tidak ada** `npm run dev`, test, lint, atau typecheck. Jangan buat/bilang perintah itu.
+- **Preview lokal:** `firebase serve` (firebase CLI v15 terpasang).
+- **Backend:** selalu dari folder `backend/` (`.clasp.json` ada di sana, `rootDir: ""`):
+  1. edit lokal → `clasp push`
+  2. `clasp update-deployment --deploymentId <DEV_ID>` → uji endpoint Dev
+  3. jika valid → `clasp update-deployment --deploymentId <PROD_ID>`
+- **DILARANG `clasp deploy` / `clasp create-deployment`** — pada clasp terpasang, `deploy` = alias `create-deployment` yang membuat ID deployment BARU (spam). Perintah update yang benar hanya `update-deployment|redeploy <deploymentId>`.
+- ID tetap (DEV/PROD) dan `scriptId` tercatat di header `Code.gs:14-17`; URL-nya di `index.html:131-132` (`GAS_URL.dev/prod`) — keduanya wajib sinkron.
 
 ## 1. Tech Stack
 - **Frontend:** Single File HTML5 + Vue 3 CDN + Tailwind CSS CDN
@@ -15,53 +20,46 @@ Greenfield: repo baru berisi `prd.md` (kebutuhan produk + skema data), `design.m
 - **DILARANG KERAS:** React, Angular, Node.js backend runner, Python, Vite, Webpack, PostCSS, Axios/jQuery, atau memecah komponen ke `.vue` / file `.js` terpisah.
 
 ## 2. Frontend (SPA Single File Ketat)
-- Seluruh markup, CSS, komponen Vue, routing, dan API call wajib utuh di **satu file `public/index.html`**.
-- Routing wajib **hash router** murni (`#/path`) tanpa reload.
-- Komponen Vue ditulis sebagai JavaScript Object di `<script>`, render via template literal `` template: `...` ``.
-- **Fetch ke GAS:**
-  - Native `fetch()` saja, selalu `redirect: 'follow'` (endpoint GAS selalu 302).
-  - POST wajib header `Content-Type: 'text/plain;charset=utf-8'` + `JSON.stringify(data)` untuk mencegah CORS preflight OPTIONS diblokir browser.
+- Seluruh markup, CSS, komponen Vue, routing, dan API call wajib utuh di **satu file `public/index.html`**. Jangan pecah kecuali instruksi langsung user.
+- Routing **hash router** murni (`#/path`); peta rute di `index.html:1336` (objek `routes` → komponen View). Komponen = JavaScript Object, render via template literal `` template: `...` ``.
+- Blok config global di `index.html:126-134`: `USE_MOCK`, `GAS_ENV` (`'dev'|'prod'`), `GAS_URL`, `ADMIN_PASSWORD`. **Mock:** `USE_MOCK = true` melewati fetch; format respon mock wajib 100% identik respon backend sungguhan; mock in-memory (seed ulang tiap reload, tanpa localStorage).
+- **Fetch ke GAS** (`api()` di `index.html:308`):
+  - Native `fetch()` + `redirect: 'follow'` (endpoint GAS selalu 302).
+  - POST header `Content-Type: 'text/plain;charset=utf-8'` + `JSON.stringify(data)` untuk cegah preflight CORS diblokir.
+  - Timeout: baca 10 dtk, tulis 30 dtk. **Tulisan sengaja tanpa retry** (commit `155be10` — retry menyebabkan duplikat); cegah duplikat lewat `clientRef` idempoten yang dibuat otomatis di `api()`.
   - Semua request dibungkus try/catch dan di-parse `.json()`.
-- **Mock system:** variabel global `USE_MOCK = true` melewati fetch dan memakai object mock lokal; format respon mock wajib **100% identik** dengan respon backend sungguhan.
+- **Tanpa data sementara:** semua data full load dari backend saat dibuka (`refresh()` → `loadSemua`), tanpa snapshot/caching localStorage — **dilarang menambah penyimpanan lokal untuk data DB**. Auto-refresh tiap 45 dtk + saat tab kembali aktif (`index.html:434`).
 
 ## 3. Design System
-- Wajib patuhi token di **`design.md`**; konfigurasikan Tailwind via script tag di `index.html` dari token tersebut. Jangan hardcode warna lain.
-- **Tema TERANG**, bukan dark mode: background `#F2F2F2`, surface putih, teks hitam (syarat kontras `prd.md` §7), brand hijau `#008444`, nav aktif ungu `#9B72B0`.
-- Warna Hijau = pemasukan/sukses, Oranye `#F9A825`/Merah `#D32F2F` = pengeluaran/alarma — konsisten di seluruh layar.
+- Token di **`design.md`**; konfigurasi Tailwind via script tag di `index.html`. Jangan hardcode warna lain.
+- **Tema TERANG:** background `#F2F2F2`, surface putih, teks hitam (syarat kontras `prd.md` §7), brand hijau `#008444`, nav aktif ungu `#9B72B0`.
+- Hijau = pemasukan/sukses, Oranye `#F9A825`/Merah `#D32F2F` = pengeluaran/alarma — konsisten di seluruh layar.
 
 ## 4. Backend (Google Apps Script via CLASP)
-- File utama: `backend/Code.gs` + utilitas pendukung. Dilarang edit via Web Editor; sinkronisasi hanya `clasp push`.
-- Setiap respon `doGet(e)`/`doPost(e)` wajib JSON valid:
+- Edit hanya lokal, sinkronisasi hanya `clasp push` (dilarang Web Editor). Kontrak di header `Code.gs:19-27`:
+  - POST body: `{ action, payload, adminKey?, clientRef? }` → `{ success: true, data } | { success: false, message }`; GET = ping.
+  - `adminKey` dikirim **di dalam body, bukan header** (header memicu preflight CORS yang ditolak GAS).
+  - Aksi admin/baca/tulis terdaftar di `Code.gs:39-42` (`ADMIN_ACTIONS` / `READ_ACTIONS` / `CREATE_ACTIONS`) — ubah ketiganya bersamaan bila menambah aksi.
+  - Aksi tulis `CREATE_ACTIONS` wajib idempoten: `clientRef` sama dalam 24 jam tidak menulis baris baru (`refDiterima_`).
+- Setiap respon `doGet`/`doPost` wajib JSON via `out()`:
   `ContentService.createTextOutput(JSON.stringify(responsePayload)).setMimeType(ContentService.MimeType.JSON)`
-- **Deployment:** 1 project GAS, 2 Deployment ID tetap (Dev & Prod). **Dilarang `clasp deploy` tanpa `--deploymentId`** (menimbulkan spam ID baru).
-- Alur update: edit lokal → `clasp push` → `clasp deploy --deploymentId {DEV_DEPLOYMENT_ID}` → uji endpoint Dev → jika valid → `clasp deploy --deploymentId {PROD_DEPLOYMENT_ID}`.
+- **Baca selalu fresh dari Sheets — tanpa cache backend** (`baca_`): perubahan/hapus langsung di spreadsheet wajib langsung tercermin di aplikasi (FE auto-sync tiap 45 dtk). Jangan tambah CacheService/caching baca.
 
 ## 5. CI/CD & Firebase Hosting
-- Deploy frontend otomatis setiap `push` ke branch `main` via `.github/workflows/deploy.yml` dengan step `FirebaseExtended/action-hosting-deploy@v0`.
-- Autentikasi wajib Google Cloud Service Account via secret `FIREBASE_SERVICE_ACCOUNT`.
+- Push ke `main` → `.github/workflows/deploy.yml` (`FirebaseExtended/action-hosting-deploy@v0`, `channelId: live`). **Tanpa build step** — upload mentah folder `public/`.
+- Autentikasi: secret `FIREBASE_SERVICE_ACCOUNT`; project `kost-chamel-gowa` (`.firebaserc`).
 
-## 6. Struktur Folder Target
-```text
-kost-chamel/
-├── public/index.html         <-- SATU file SPA (HTML + Vue 3 + Tailwind + script)
-├── backend/
-│   ├── Code.gs               <-- Logika GAS & Spreadsheet
-│   ├── appsscript.json
-│   └── .clasp.json
-├── .github/workflows/deploy.yml
-├── firebase.json             <-- arahkan ke folder "public"
-├── .firebaserc
-├── .gitignore
-├── prd.md / design.md / AGENTS.md
-```
+## 6. Data & Skema
+- Skema tab & validasi: `prd.md` §6 (FR-01…FR-05): tab `Kamar`, `Penghuni`, `Transaksi`.
+- Kolom fisik ada di `HEADERS` (`Code.gs:34-38`) — **wajib sinkron dengan `prd.md` §6**; jangan ubah salah satu tanpa yang lain.
 
 ## 7. Aturan Modifikasi Kode (Ketat)
-1. **Strict scope:** eksekusi hanya baris/fungsi yang diminta eksplisit; dilarang refactor/format ulang file tak terkait.
+1. **Strict scope:** eksekusi hanya baris/fungsi yang diminta; dilarang refactor file tak terkait.
 2. **Append-only:** prioritaskan fungsi baru tanpa menimpa yang sudah stabil.
-3. **Single file integrity:** jangan pecah `index.html` kecuali ada instruksi langsung user.
+3. **Single file integrity:** jangan pecah `index.html`.
 4. **Zero packages:** jangan instal/sarankan dependensi npm frontend.
 5. **Konfirmasi:** perubahan struktur dasar wajib minta izin dulu.
 
-## 8. Data & Konvensi Lain
-- **Skema tab Google Sheets & aturan validasi** ada di `prd.md` §6 (FR-01…FR-05): tab `Kamar`, `Penghuni`, `Transaksi`. Jangan duplikasi atau ubah tanpa sinkron ke `prd.md`.
+## 8. Konvensi Lain
 - **Format commit:** `{type}: {description}` dengan type `feat` | `fix` | `chore` | `docs`.
+- File sensitif sudah di `.gitignore` (`.clasprc.json`, `serviceAccount*.json`, `.env*`) — jangan pernah ditambahkan ke repo.

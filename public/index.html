@@ -227,25 +227,8 @@ const SEED = {
     { ID: 'T12', Tipe: 'Keluar', Nama: 'Perbaikan', Jumlah: 220000, Tgl: '2026-09-12', Ket: 'Ganti kran A2' }
   ]
 };
-const STORE_KEY = 'kostchamel_db_v1';
 const seedDb = () => JSON.parse(JSON.stringify(SEED));
-function validDb(x) {
-  return !!(x && Array.isArray(x.kamar) && Array.isArray(x.penghuni) && Array.isArray(x.transaksi));
-}
-let db = loadDb();
-function loadDb() {
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (validDb(parsed)) return parsed;
-    }
-  } catch (e) {}
-  return seedDb();
-}
-function saveDb() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch (e) {}
-}
+let db = seedDb(); // mock in-memory saja — tanpa penyimpanan lokal
 const ok = data => ({ success: true, data: data });
 const fail = message => ({ success: false, message: message });
 const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -262,7 +245,7 @@ async function mockApi(action, payload) {
       if (!no) return fail('No kamar wajib diisi');
       if (db.kamar.some(k => k.No === no)) return fail('No kamar sudah dipakai');
       const item = { ID: 'K' + Date.now(), No: no, Fasilitas: payload.Fasilitas || '', Harga: Number(payload.Harga) || 0, Status: payload.Status || 'Kosong' };
-      db.kamar.push(item); saveDb(); return ok(item);
+      db.kamar.push(item); return ok(item);
     }
     case 'updateKamar': {
       const i = db.kamar.findIndex(k => k.ID === payload.ID);
@@ -273,14 +256,14 @@ async function mockApi(action, payload) {
         if (db.kamar.some((k, idx) => idx !== i && k.No === no)) return fail('No kamar sudah dipakai');
         payload = Object.assign({}, payload, { No: no });
       }
-      db.kamar[i] = Object.assign(db.kamar[i], payload); saveDb(); return ok(db.kamar[i]);
+      db.kamar[i] = Object.assign(db.kamar[i], payload); return ok(db.kamar[i]);
     }
     case 'deleteKamar': {
       const i = db.kamar.findIndex(k => k.ID === payload.ID);
       if (i < 0) return fail('Kamar tidak ditemukan');
       if (db.penghuni.some(p => p.KamarID === payload.ID && !p.TglKeluar)) return fail('Kamar masih dihuni penghuni — pindahkan/tandai keluar dulu');
       const removed = db.kamar.splice(i, 1)[0];
-      saveDb(); return ok(removed);
+      return ok(removed);
     }
     case 'listPenghuni': return ok(db.penghuni);
     case 'addPenghuni': {
@@ -296,12 +279,12 @@ async function mockApi(action, payload) {
       db.penghuni.push(item);
       const k = db.kamar.find(k => k.ID === item.KamarID);
       if (k) k.Status = 'Terisi';
-      saveDb(); return ok(item);
+      return ok(item);
     }
     case 'updatePenghuni': {
       const i = db.penghuni.findIndex(p => p.ID === payload.ID);
       if (i < 0) return fail('Penghuni tidak ditemukan');
-      db.penghuni[i] = Object.assign(db.penghuni[i], payload); saveDb(); return ok(db.penghuni[i]);
+      db.penghuni[i] = Object.assign(db.penghuni[i], payload); return ok(db.penghuni[i]);
     }
     case 'listTransaksi': return ok(db.transaksi);
     case 'addTransaksi': {
@@ -317,7 +300,7 @@ async function mockApi(action, payload) {
         const p = db.penghuni.find(p => p.Nama === item.Nama);
         if (p) p.StatusBayar = 'Sudah Bayar';
       }
-      saveDb(); return ok(item);
+      return ok(item);
     }
     default: return fail('Aksi tidak dikenal: ' + action);
   }
@@ -376,31 +359,10 @@ function toast(msg, type) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { ui.toast.msg = ''; }, 2600);
 }
-/* Snapshot localStorage (stale-while-revalidate): tampilkan data terakhir
-   seketika saat aplikasi dibuka, lalu refresh jaringan menimpanya. */
-const SNAP_KEY = 'kostchamel_snap';
-function muatSnap_() {
-  try {
-    const raw = localStorage.getItem(SNAP_KEY);
-    if (!raw) return false;
-    const s = JSON.parse(raw);
-    if (!s || !Array.isArray(s.kamar)) return false;
-    store.kamar = s.kamar;
-    store.penghuni = Array.isArray(s.penghuni) ? s.penghuni : [];
-    store.transaksi = Array.isArray(s.transaksi) ? s.transaksi : [];
-    return true;
-  } catch (e) { return false; }
-}
-function simpanSnap_() {
-  try {
-    localStorage.setItem(SNAP_KEY, JSON.stringify({ kamar: store.kamar, penghuni: store.penghuni, transaksi: store.transaksi, t: Date.now() }));
-  } catch (e) {}
-}
 async function refresh() {
   const isi = () => {
     if (USE_MOCK && !store.kamar.length && !store.penghuni.length && !store.transaksi.length) {
       db = seedDb();
-      saveDb();
       return true;
     }
     return false;
@@ -419,7 +381,6 @@ async function refresh() {
         store.transaksi = ulang.data.transaksi || [];
       }
     }
-    simpanSnap_();
     return;
   }
   // fallback: backend lama tanpa loadSemua — 3 aksi baca terpisah
@@ -433,7 +394,6 @@ async function refresh() {
     if (again[1].success) store.penghuni = again[1].data || [];
     if (again[2].success) store.transaksi = again[2].data || [];
   }
-  if (k.success || p.success || t.success) simpanSnap_();
 }
 /* Jaga-jaga: ping ringan tiap 5 menit selama tab terbuka supaya eksekusi GAS
    selalu hangat (menghindari cold start 2–5 dtk saat data diminta). */
@@ -465,7 +425,6 @@ function taruh_(jenis, data, mode) {
     else next.push(data);
     store[jenis] = next;
   }
-  simpanSnap_();
   syncLatar();
 }
 /* Auto-sinkron: tarik perubahan DB tiap 45 dtk selama tab terbuka,
@@ -1419,7 +1378,7 @@ const app = createApp({
       this.guard();
     });
     warmPing();
-    muatSnap_();
+    try { localStorage.removeItem('kostchamel_snap'); localStorage.removeItem('kostchamel_db_v1'); } catch (e) {}
     jadwalAutoSync();
     refresh();
     this.guard();

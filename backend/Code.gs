@@ -90,7 +90,7 @@ function catatRef_(ref, idHasil) {
 }
 function dataDariRef_(action, id) {
   var tab = action === 'addPenghuni' ? TAB.penghuni : (action === 'addTransaksi' ? TAB.transaksi : TAB.kamar);
-  var rows = bacaCached_(tab);
+  var rows = baca_(tab);
   for (var i = 0; i < rows.length; i++) {
     if (String(rows[i].ID) === String(id)) return rows[i];
   }
@@ -132,6 +132,8 @@ function sel_(head, h, v) {
   if (v instanceof Date) return tglISO_(v);
   return String(v == null ? '' : v);
 }
+/* Baca selalu fresh dari Spreadsheet — TANPA cache, supaya penambahan/edits/hapus
+   langsung di spreadsheet langsung tercermin di aplikasi. */
 function baca_(nama) {
   var sh = sheet_(nama);
   var lastRow = sh.getLastRow();
@@ -146,30 +148,6 @@ function baca_(nama) {
     hasil.push(o);
   }
   return hasil;
-}
-/* ---- Cache baca 60 dtk (di-invalidate oleh SEMUA jalur mutasi) ---- */
-var CACHE_TTL_ = 300;
-var CACHE_KEYS_ = ['BACA_' + TAB.kamar, 'BACA_' + TAB.penghuni, 'BACA_' + TAB.transaksi];
-function cache_() {
-  try { return CacheService.getScriptCache(); } catch (e) { return null; }
-}
-function bacaCached_(nama) {
-  var key = 'BACA_' + nama;
-  var c = cache_();
-  if (c) {
-    try { var hit = c.get(key); if (hit) return JSON.parse(hit); } catch (e2) {}
-  }
-  var rows = baca_(nama);
-  if (c) {
-    try { c.put(key, JSON.stringify(rows), CACHE_TTL_); } catch (e3) {}
-  }
-  return rows;
-}
-function batalCache_() {
-  var c = cache_();
-  if (c) {
-    try { c.removeAll(CACHE_KEYS_); } catch (e) {}
-  }
 }
 function cariBaris_(sh, id) {
   var lastRow = sh.getLastRow();
@@ -297,7 +275,7 @@ function handle_(action, p) {
       return ok({ app: 'KOST CHAMEL GOWA', status: 'online' });
 
     case 'listKamar':
-      return ok(bacaCached_(TAB.kamar));
+      return ok(baca_(TAB.kamar));
 
     case 'addKamar': {
       var no = String(p.No || '').trim();
@@ -344,7 +322,7 @@ function handle_(action, p) {
     }
 
     case 'listPenghuni':
-      return ok(bacaCached_(TAB.penghuni));
+      return ok(baca_(TAB.penghuni));
 
     case 'addPenghuni': {
       var nama = String(p.Nama || '').trim();
@@ -359,7 +337,7 @@ function handle_(action, p) {
       };
       tambahBaris_(TAB.penghuni, penghuni);
       if (penghuni.KamarID) {
-        var k = bacaCached_(TAB.kamar).find(function (kk) { return String(kk.ID) === String(penghuni.KamarID); });
+        var k = baca_(TAB.kamar).find(function (kk) { return String(kk.ID) === String(penghuni.KamarID); });
         if (k) {
           var shK = sheet_(TAB.kamar);
           var barisK = cariBaris_(shK, k.ID);
@@ -381,13 +359,13 @@ function handle_(action, p) {
     }
 
     case 'listTransaksi':
-      return ok(bacaCached_(TAB.transaksi));
+      return ok(baca_(TAB.transaksi));
 
     case 'loadSemua':
       return ok({
-        kamar: bacaCached_(TAB.kamar),
-        penghuni: bacaCached_(TAB.penghuni),
-        transaksi: bacaCached_(TAB.transaksi)
+        kamar: baca_(TAB.kamar),
+        penghuni: baca_(TAB.penghuni),
+        transaksi: baca_(TAB.transaksi)
       });
 
     case 'addTransaksi': {
@@ -400,7 +378,7 @@ function handle_(action, p) {
       };
       tambahBarisTerbaru_(TAB.transaksi, trx);
       if (trx.Tipe === 'Masuk') {
-        var cocok = bacaCached_(TAB.penghuni).find(function (pp) { return pp.Nama === trx.Nama; });
+        var cocok = baca_(TAB.penghuni).find(function (pp) { return pp.Nama === trx.Nama; });
         if (cocok) {
           var shPe = sheet_(TAB.penghuni);
           var barisPe = cariBaris_(shPe, cocok.ID);
@@ -423,8 +401,8 @@ function handle_(action, p) {
 
 /* ========================= ENTRY POINT GAS ========================= */
 // wrapper publik untuk dropdown editor Apps Script / clasp run:
-function setup() { var r = setup_(); batalCache_(); return r; }
-function seedContoh() { var r = seedContoh_(); batalCache_(); return r; }
+function setup() { return setup_(); }
+function seedContoh() { return seedContoh_(); }
 
 function doGet(e) {
   return out(ok({ app: 'KOST CHAMEL GOWA', status: 'online' }));
@@ -458,7 +436,7 @@ function doPost(e) {
       if (perluCekRef && hasil && hasil.success) catatRef_(ref, hasil.data && hasil.data.ID);
       return out(hasil);
     }
-    finally { batalCache_(); lock.releaseLock(); }
+    finally { lock.releaseLock(); }
   } catch (err) {
     return out(fail('Kesalahan server: ' + (err && err.message || err)));
   }
