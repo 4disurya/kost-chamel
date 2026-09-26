@@ -24,7 +24,7 @@ Masih dihapus dari worktree: `firebase.json`, `.firebaserc`, `.gitignore`, `.git
 ## 2. Frontend (SPA Single File Ketat)
 - Seluruh markup, CSS, komponen Vue, routing, dan API call wajib utuh di **satu file `public/index.html`**. Jangan pecah kecuali instruksi langsung user.
 - Routing **hash router** murni (`#/path`); peta rute: objek `routes` di `index.html:1361` (komponen = JS Object, render via template literal `` template: `...` ``).
-- Blok config global `index.html:127-135`: `USE_MOCK` (`:128`), `GAS_ENV` `'dev'|'prod'` (`:129`), `GAS_URL` dev/prod (`:131-132`), `ADMIN_PASSWORD` (`:134`), `ADMIN_ROUTES` (`:135`). `GAS_ENV` saat ini **`'dev'`** — pastikan sesuai sebelum push ke hosting produksi.
+- Blok config global `index.html:127-135`: `USE_MOCK` (`:128`), `GAS_ENV` `'dev'|'prod'` (`:129`), `GAS_URL` dev/prod (`:131-132`), `ADMIN_PASSWORD` (`:134`), `ADMIN_ROUTES` (`:135`). `GAS_ENV` saat ini **`'prod'`** (DEV & PROD identik — same script/sheet — keduanya tervalidasi live).
 - **Tanpa data sementara:** semua data full load dari backend (`refresh()` → `loadSemua`), **dilarang menyimpan data DB di localStorage/snapshot** (sisa kunci lama dibersihkan di `index.html:1406`). Auto-refresh tiap 45 dtk + saat tab aktif lagi (`index.html:441-442`).
 
 ## 3. API & Mock (sumber kontrak = kode, bukan dokumen)
